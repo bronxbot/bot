@@ -432,7 +432,7 @@ class Economy(commands.Cog):
         
         # Calculate current rate in percentage
         current_rate_percent = (0.03 + (level * 0.05))  # 0.03% base + 0.05% per level
-        next_rate_percent = (0.03 + ((level + 1) * 0.05)) if level < 30 else current_rate_percent
+        next_rate_percent = (0.03 + ((level + 1) * 0.05)) if level < 60 else current_rate_percent
         
         # Calculate estimated earnings (without random bonus for display)
         estimated_interest = total_balance * (current_rate_percent / 100)
@@ -441,7 +441,7 @@ class Economy(commands.Cog):
         embed = discord.Embed(
             title="Interest Account Status",
             description=(
-                f"**Current Level:** {level}/30\n"
+                f"**Current Level:** {level}/60\n"
                 f"**Daily Interest Rate:** {current_rate_percent:.2f}%\n"
                 f"**Wallet Balance:** {wallet:,} {self.currency}\n"
                 f"**Bank Balance:** {bank:,} {self.currency}\n"
@@ -452,7 +452,7 @@ class Economy(commands.Cog):
             color=discord.Color.blue()
         )
         
-        if level < 30:
+        if level < 60:
             base_cost = 1000
             cost = base_cost * (level + 1)
             embed.add_field(
@@ -471,7 +471,7 @@ class Economy(commands.Cog):
         
         async def create_upgrade_embed(user_id):
             current_level = await db.get_interest_level(user_id)
-            if current_level >= 30:
+            if current_level >= 60:
                 embed = discord.Embed(
                     title="Interest Rate Upgrade",
                     description="You've reached the maximum interest level!",

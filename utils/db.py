@@ -252,14 +252,14 @@ class AsyncDatabase:
         if not user or "inventory" not in user:
             return []
         
-        # Group items by name/id and count quantities
+        # Group items by id and sum quantities
         from collections import defaultdict
         item_counts = defaultdict(int)
         item_data = {}
         
         for item in user.get("inventory", []):
             item_key = item.get("id", item.get("name", "unknown"))
-            item_counts[item_key] += 1
+            item_counts[item_key] += item.get("quantity", 1)  # Add quantity if exists, default to 1
             if item_key not in item_data:
                 item_data[item_key] = item.copy()
         
@@ -271,7 +271,7 @@ class AsyncDatabase:
             result.append(item)
         
         return result
-
+    
     async def buy_item(self, user_id: int, item_id: str, guild_id: int = None) -> tuple[bool, str]:
         """Buy an item from any shop"""
         if not await self.ensure_connected():
@@ -465,26 +465,32 @@ class AsyncDatabase:
             return False
         
         inventory = user["inventory"]
-        items_to_remove = []
-        removed_count = 0
+        items_to_keep = []
+        remaining_to_remove = quantity
         
-        # Find items to remove (remove only the specified quantity)
-        for i, item in enumerate(inventory):
-            if (item.get("id") == item_id or item.get("name") == item_id) and removed_count < quantity:
-                items_to_remove.append(i)
-                removed_count += 1
+        # Filter items to keep/remove
+        for item in inventory:
+            if (item.get("id") == item_id or item.get("name") == item_id) and remaining_to_remove > 0:
+                item_quantity = item.get("quantity", 1)
+                if item_quantity > remaining_to_remove:
+                    # Keep the item but reduce its quantity
+                    new_item = item.copy()
+                    new_item["quantity"] = item_quantity - remaining_to_remove
+                    items_to_keep.append(new_item)
+                    remaining_to_remove = 0
+                else:
+                    # Remove the entire item (or reduce quantity to 0)
+                    remaining_to_remove -= item_quantity
+            else:
+                items_to_keep.append(item.copy())
         
-        if removed_count < quantity:
+        if remaining_to_remove > 0:
             return False  # Not enough items to remove
-        
-        # Remove items from inventory (in reverse order to maintain indices)
-        for index in reversed(items_to_remove):
-            inventory.pop(index)
         
         # Update the user's inventory
         result = await self.db.users.update_one(
             {"_id": str(user_id)},
-            {"$set": {"inventory": inventory}}
+            {"$set": {"inventory": items_to_keep}}
         )
         
         return result.modified_count > 0
@@ -862,6 +868,43 @@ class AsyncDatabase:
             {"$pull": {"fish": {"id": fish_id}}}
         )
         return result.modified_count > 0
+    
+    async def add_to_inventory(self, user_id: int, guild_id: int, item_data: dict, quantity: int = 1) -> bool:
+        """Add an item to user's inventory with quantity support"""
+        if not await self.ensure_connected():
+            return False
+        
+        if not item_data or not item_data.get('id'):
+            return False
+        
+        try:
+            # Create a clean item copy without MongoDB-specific fields
+            clean_item = {
+                'id': item_data['id'],
+                'name': item_data.get('name', item_data['id']),
+                'description': item_data.get('description', ''),
+                'type': item_data.get('type', 'item'),
+                'price': item_data.get('price', 0),
+                'value': item_data.get('value', item_data.get('price', 0))
+            }
+            
+            # If the item has additional properties, include them
+            for key, value in item_data.items():
+                if key not in clean_item and not key.startswith('_'):
+                    clean_item[key] = value
+            
+            # Add the item to inventory (multiple times if quantity > 1)
+            result = await self.db.users.update_one(
+                {"_id": str(user_id)},
+                {"$push": {"inventory": {"$each": [clean_item] * (quantity if quantity > 0 else 1)}}},
+                upsert=True
+            )
+            
+            return result.modified_count > 0 or result.upserted_id is not None
+            
+        except Exception as e:
+            self.logger.error(f"Failed to add item to inventory: {e}")
+            return False
 
 class SyncDatabase:
     """Synchronous database class for use with Flask web interface (SQLite & MongoDB)"""

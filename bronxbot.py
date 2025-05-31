@@ -9,6 +9,7 @@ import aiohttp
 import traceback
 from discord.ext import commands, tasks
 from typing import Dict, List, Tuple
+from os import system
 import logging
 
 # Set up logging
@@ -17,6 +18,8 @@ logging.basicConfig(level=logging.INFO)
 # config
 with open("data/config.json", "r") as f:
     config = json.load(f)
+
+dev = config.get('DEV', False)  # Check if running in development mode
 
 # List of guilds that have access to all features
 MAIN_GUILD_IDS = [
@@ -105,8 +108,11 @@ class BronxBot(commands.AutoShardedBot):
                     try:
                         async with session.post(url, json=stats) as resp:
                             result = await resp.text()
-                            logging.info(f"[{env.upper()}] Stats update status: {resp.status}")
-                            logging.info(f"[{env.upper()}] Response: {result}")
+                            if resp.status == 200:
+                                logging.info(f"[{env.upper()}] Stats updated successfully: {result}")
+                            else:
+                                logging.error(f"[{env.upper()}] Failed to update stats: {resp.status} - {result}")
+                                
                     except Exception as e:
                         logging.error(f"[{env.upper()}] Failed to update stats: {e}")
         except Exception as e:
@@ -160,6 +166,8 @@ COG_DATA = {
         "cogs.economy.Economy": "success",
         "cogs.economy.Fishing": "success",
         "cogs.economy.Shop": "success",
+        "cogs.economy.Trading": "success",
+        "cogs.economy.Gambling": "success",
     },
     "colors": {
         "error": "\033[31m",      # Red
@@ -443,8 +451,18 @@ if __name__ == "__main__":
     logging.info(f"Starting BronxBot with {bot.shard_count} shards")
     
     # Run the Discord bot
-    try:
-        bot.run(config['TOKEN'], log_handler=None)  # Disable default discord.py logging
-    except Exception as e:
-        logging.error(f"Failed to start the bot: {e}")
-        traceback.print_exc()
+    if dev:
+        logging.info("Running in development mode")
+        system("clear" if os.name == "posix" else "cls")
+        if os.name == "posix":
+            sys.stdout.write("\x1b]2;BronxBot (DEV)\x07")
+        bot.run(config['DEV_TOKEN'], log_handler=None)  # Disable default discord.py logging
+    else:
+        try:
+            system("clear" if os.name == "posix" else "cls")
+            if os.name == "posix":
+                sys.stdout.write("\x1b]2;BronxBot\x07")
+            bot.run(config['TOKEN'], log_handler=None)  # Disable default discord.py logging
+        except Exception as e:
+            logging.error(f"Failed to start the bot: {e}")
+            traceback.print_exc()
