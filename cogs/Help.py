@@ -751,6 +751,81 @@ class Help(commands.Cog, ErrorHandler):
         await interaction.response.send_message("An error occurred with the invite command.", ephemeral=True)
 
 
+class HelpPaginator(discord.ui.View):
+    """Simple paginator for displaying multiple embeds with navigation buttons"""
+    
+    def __init__(self, pages: List[discord.Embed], author: discord.User, timeout=300):
+        super().__init__(timeout=timeout)
+        self.pages = pages
+        self.author = author
+        self.current_page = 0
+        self.message = None
+        self.update_buttons()
+    
+    def update_buttons(self):
+        """Update button states based on current page"""
+        self.clear_items()
+        
+        if len(self.pages) <= 1:
+            return
+        
+        # Previous button
+        prev_button = discord.ui.Button(
+            style=discord.ButtonStyle.secondary,
+            emoji="◀️",
+            disabled=self.current_page == 0
+        )
+        prev_button.callback = self.previous_page
+        self.add_item(prev_button)
+        
+        # Page indicator
+        page_button = discord.ui.Button(
+            style=discord.ButtonStyle.secondary,
+            label=f"{self.current_page + 1}/{len(self.pages)}",
+            disabled=True
+        )
+        self.add_item(page_button)
+        
+        # Next button
+        next_button = discord.ui.Button(
+            style=discord.ButtonStyle.secondary,
+            emoji="▶️",
+            disabled=self.current_page == len(self.pages) - 1
+        )
+        next_button.callback = self.next_page
+        self.add_item(next_button)
+    
+    async def previous_page(self, interaction: discord.Interaction):
+        """Go to previous page"""
+        if interaction.user != self.author:
+            await interaction.response.send_message("You cannot use these buttons.", ephemeral=True)
+            return
+        
+        if self.current_page > 0:
+            self.current_page -= 1
+            self.update_buttons()
+            await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+    
+    async def next_page(self, interaction: discord.Interaction):
+        """Go to next page"""
+        if interaction.user != self.author:
+            await interaction.response.send_message("You cannot use these buttons.", ephemeral=True)
+            return
+        
+        if self.current_page < len(self.pages) - 1:
+            self.current_page += 1
+            self.update_buttons()
+            await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+    
+    async def on_timeout(self):
+        """Remove buttons when view times out"""
+        if self.message:
+            try:
+                await self.message.edit(view=None)
+            except:
+                pass
+
+
 async def setup(bot):
     try:
         await bot.add_cog(Help(bot))
