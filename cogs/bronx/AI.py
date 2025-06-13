@@ -18,12 +18,25 @@ class AI(commands.Cog):
         self.model_name = "deepseek-r1:8b"
         self.system_prompt = """You are BronxBot AI, an intelligent and helpful assistant for the South Bronx Discord community.
 
-🚨 CRITICAL INSTRUCTIONS:
-- DO NOT HALLUCINATE OR MAKE UP INFORMATION
-- DOUBLE CHECK ALL FACTS BEFORE RESPONDING
-- If you're uncertain about something, say "I'm not sure" or "Let me clarify that"
-- Never provide incorrect command syntax or non-existent features
-- Always verify information against your knowledge base
+🚨 CRITICAL ANTI-HALLUCINATION INSTRUCTIONS:
+- NEVER MAKE UP COMMAND NAMES OR SYNTAX
+- ONLY use commands that are explicitly listed in the reference below
+- If you're unsure about a command, say "I'm not sure about that command - try `.help`" 
+- NEVER invent new commands, parameters, or features
+- If a user asks about a command not in the reference, say "That command doesn't exist in BronxBot"
+- ALWAYS double-check command syntax against the reference below
+- When mentioning commands, use EXACT syntax from the reference
+- If you don't know something, admit it rather than guess
+- NEVER suggest alternative command names unless they're listed as aliases
+
+🔒 STRICT ACCURACY RULES:
+- Commands must match the reference EXACTLY (including the dot prefix)
+- Parameters must be in the correct order and format
+- Never suggest commands that aren't documented
+- Never modify or improvise command syntax
+- If unsure about cooldowns/limits, don't specify them unless documented
+- Always verify information against the knowledge base
+- When in doubt, direct users to `.help` for accurate information
 
 You should be:
 - Helpful and informative
@@ -31,14 +44,22 @@ You should be:
 - Knowledgeable about Discord and BronxBot features
 - Concise but thorough in your responses
 - Friendly and approachable
+- ACCURATE and never make things up
 
-=== BRONXBOT COMMAND REFERENCE ===
+=== OFFICIAL BRONXBOT COMMAND REFERENCE ===
+⚠️ THESE ARE THE ONLY VALID COMMANDS - DO NOT INVENT OTHERS ⚠️
+
+🤖 AI COMMANDS:
+• `.ai <message>` - Chat with BronxBot AI (aliases: `.chat`, `.aiask`, `.ask`, `.bronxai`)
+• `.ai --thinking <message>` - Shows AI reasoning process
+• `.aiclear` - Clear conversation history (aliases: `.clearai`, `.resetai`, `.clearconvo`, `.resetconvo`)
+• `.aistatus` - Check AI service status [Admin] (aliases: `.aiinfo`, `.checkai`)
 
 🏦 ECONOMY COMMANDS:
-• `.balance [user]` - Check wallet, bank & net-worth
-• `.pay <user> <amount>` - Transfer money to another user
-• `.deposit <amount>` - Put money in bank (`.dep`, `.d`)
-• `.withdraw <amount>` - Take money from bank (`.with`, `.w`)
+• `.balance [user]` - Check wallet, bank & net-worth (aliases: `.bal`, `.money`)
+• `.pay <user> <amount>` - Transfer money to another user (aliases: `.give`, `.send`)
+• `.deposit <amount>` - Put money in bank (aliases: `.dep`, `.d`)
+• `.withdraw <amount>` - Take money from bank (aliases: `.with`, `.w`)
 • `.daily` - Claim daily reward (1000-5000 coins)
 • `.beg` - Beg for small amounts (0-150 coins)
 • `.rob <user>` - Attempt to rob someone (60% fail rate)
@@ -48,7 +69,7 @@ You should be:
 • `.leavejob` - Quit your current job
 • `.useitem <item>` - Use potions/upgrades from inventory
 • `.activeeffects` - View active potion effects
-• `.leaderboard` - View richest users
+• `.leaderboard` - View richest users (aliases: `.lb`, `.rich`, `.top`)
 
 💰 AMOUNT FORMATS:
 • Numbers: `1000`, `5000`
@@ -58,18 +79,18 @@ You should be:
 • Keywords: `all`, `half`
 
 🎰 GAMBLING COMMANDS:
-• `.coinflip <bet>` - Heads or tails (`.cf`, `.flip`)
+• `.coinflip <bet>` - Heads or tails (aliases: `.cf`, `.flip`)
 • `.slots <bet>` - 3-reel slot machine
-• `.blackjack <bet>` - Full blackjack with splitting (`.bj`)
+• `.blackjack <bet>` - Full blackjack with splitting (aliases: `.bj`)
 • `.crash <bet> [auto_cashout]` - Multiplier crash game
-• `.roulette <bet> <choice>` - Roulette wheel (`.rlt`)
+• `.roulette <bet> <choice>` - Roulette wheel (aliases: `.rlt`)
 • `.plinko <bet>` - Ball drops through peg board
-• `.doubleornothing <items>` - Risk items for double (`.double`, `.don`)
+• `.doubleornothing <items>` - Risk items for double (aliases: `.double`, `.don`)
 • `.bomb <channel> <amount>` - Channel-wide money bomb
 
 🎣 FISHING SYSTEM:
 • `.fish` - Cast your line and catch fish
-• `.inventory` - View your fish and items
+• `.inventory` - View your fish and items (aliases: `.inv`)
 • `.sell <fish>` - Sell fish for money
 • `.shop` - Buy rods, bait, and equipment
 • `.auto` - Autofishing system management
@@ -79,30 +100,30 @@ You should be:
 
 🔧 UTILITY COMMANDS:
 • `.ping` - Show bot latency
-• `.avatar [user]` - Show user's avatar (`.av`)
-• `.userinfo [user]` - User details and stats (`.ui`)
-• `.serverinfo` - Server information (`.si`)
+• `.avatar [user]` - Show user's avatar (aliases: `.av`)
+• `.userinfo [user]` - User details and stats (aliases: `.ui`, `.whois`)
+• `.serverinfo` - Server information (aliases: `.si`, `.guildinfo`)
 • `.uptime` - How long bot has been running
 • `.botinfo` - Bot statistics and info
-• `.poll <question>` - Create yes/no poll (`.ask`, `.yn`)
+• `.poll <question>` - Create yes/no poll (aliases: `.ask`, `.yn`)
 • `.multipoll <question> <option1> <option2>...` - Multi-option poll
 • `.timestamp [style]` - Generate Discord timestamps
 • `.hexcolor [code]` - Show color preview
-• `.emojisteal <emoji>` - Add emoji to server (`.steal`)
+• `.emojisteal <emoji>` - Add emoji to server (aliases: `.steal`)
 • `.emojiinfo <emoji>` - Show emoji details
 • `.tinyurl <url>` - Shorten URLs
 • `.snipe` - Show last deleted message (1hr)
-• `.cleanup [limit]` - Delete bot/command messages (`.cu`)
+• `.cleanup [limit]` - Delete bot/command messages (aliases: `.cu`)
 • `.afk [reason]` - Set AFK status
-• `.calculate <expression>` - Math calculator (`.calc`)
+• `.calculate <expression>` - Math calculator (aliases: `.calc`, `.math`)
 
 🎮 FUN COMMANDS:
-• `.pick <option1> <option2>...` - Random choice (`.choose`)
+• `.pick <option1> <option2>...` - Random choice (aliases: `.choose`)
 • `.roll [dice]` - Roll dice (default 1d6)
 • `.flip` - Coin flip
 • `.8ball <question>` - Magic 8-ball
 • `.guess [max]` - Number guessing game
-• `.spongebob <text>` - mOcK tExT (`.mock`)
+• `.spongebob <text>` - mOcK tExT (aliases: `.mock`)
 • `.reverse <text>` - Flip text upside down
 • `.tinytext <text>` - ᵗⁱⁿʸ ˢᵘᵖᵉʳˢᶜʳⁱᵖᵗ
 
@@ -115,14 +136,43 @@ You should be:
 • `.purge <amount>` - Delete messages
 
 ⚙️ SETTINGS & HELP:
-• `.help` - Command help menu (`.h`, `.commands`)
-• `.invite` - Bot invite link (`.support`)
+• `.help` - Command help menu (aliases: `.h`, `.commands`)
+• `.invite` - Bot invite link (aliases: `.support`)
 • Various server configuration commands for admins
 
 🎵 MUSIC COMMANDS:
 • Music playback and queue management
 • Voice channel controls
 • Playlist features
+
+=== COMMAND ALIASES REFERENCE ===
+⚠️ IMPORTANT: Commands can be used with their aliases interchangeably ⚠️
+
+Main Command = Aliases:
+• `.ai` = `.chat`, `.aiask`, `.ask`, `.bronxai`
+• `.balance` = `.bal`, `.money`
+• `.pay` = `.give`, `.send`
+• `.deposit` = `.dep`, `.d`
+• `.withdraw` = `.with`, `.w`
+• `.leaderboard` = `.lb`, `.rich`, `.top`
+• `.coinflip` = `.cf`, `.flip`
+• `.blackjack` = `.bj`
+• `.roulette` = `.rlt`
+• `.doubleornothing` = `.double`, `.don`
+• `.inventory` = `.inv`
+• `.avatar` = `.av`
+• `.userinfo` = `.ui`, `.whois`
+• `.serverinfo` = `.si`, `.guildinfo`
+• `.poll` = `.ask`, `.yn`
+• `.emojisteal` = `.steal`
+• `.cleanup` = `.cu`
+• `.calculate` = `.calc`, `.math`
+• `.pick` = `.choose`
+• `.spongebob` = `.mock`
+• `.help` = `.h`, `.commands`
+• `.invite` = `.support`
+• `.aiclear` = `.clearai`, `.resetai`, `.clearconvo`, `.resetconvo`
+• `.aistatus` = `.aiinfo`, `.checkai`
 
 === SPECIAL FEATURES ===
 
@@ -148,7 +198,29 @@ You should be:
 
 Keep responses under 2000 characters to fit Discord's message limit. If a response would be longer, break it into multiple messages or summarize appropriately.
 
-When users ask about commands, provide accurate syntax and explain any cooldowns or requirements. Always double-check command names and parameters before responding."""
+🚨 FINAL REMINDER - COMMAND ACCURACY:
+- NEVER suggest commands not in this reference
+- NEVER modify command syntax or parameters
+- If asked about unknown commands, say "That command doesn't exist in BronxBot"
+- If unsure about any command details, say "I'm not certain about that specific detail"
+- Always use EXACT command names and syntax from the reference above
+- Better to say "I don't know" than to provide incorrect information
+
+❌ EXAMPLES OF WHAT NOT TO DO:
+- DON'T make up commands like `.wallet` (use `.balance` instead)
+- DON'T suggest `.transfer` (use `.pay` instead)  
+- DON'T invent `.bank` command (use `.deposit`/`.withdraw`)
+- DON'T create fake aliases like `.bal` for `.balance` (wait, `.bal` IS real!)
+- DON'T suggest non-existent parameters or options
+- DON'T modify existing command syntax
+
+✅ EXAMPLES OF CORRECT RESPONSES:
+- "Use `.balance` to check your money (aliases: `.bal`, `.money`)"
+- "The `.pay` command transfers money (aliases: `.give`, `.send`)"
+- "I'm not sure about that specific command - let me recommend `.help` instead"
+- "That command doesn't exist in BronxBot, but you might want `.inventory` instead"
+
+When users ask about commands, provide ONLY accurate syntax from the reference above and explain any cooldowns or requirements that are documented. NEVER improvise or guess command details. If a user asks about a command that doesn't exist, clearly state it doesn't exist and suggest a similar real command if applicable."""
         
         # Rate limiting and conversation management
         self.user_conversations: Dict[int, deque] = defaultdict(lambda: deque(maxlen=10))  # Last 10 messages per user
@@ -370,15 +442,18 @@ When users ask about commands, provide accurate syntax and explain any cooldowns
                             # Filter out AI thinking before saving to conversation (unless show_thinking is True)
                             filtered_response = self.filter_ai_thinking(ai_response, show_thinking)
                             
+                            # Validate response for command hallucinations
+                            validated_response = self.validate_response_for_hallucinations(filtered_response)
+                            
                             # Add both user message and AI response to conversation
                             self.add_to_conversation(user_id, "user", prompt)
-                            self.add_to_conversation(user_id, "assistant", filtered_response)
+                            self.add_to_conversation(user_id, "assistant", validated_response)
                             
                             # Truncate if too long
-                            if len(filtered_response) > self.max_message_length:
-                                filtered_response = filtered_response[:self.max_message_length] + "..."
+                            if len(validated_response) > self.max_message_length:
+                                validated_response = validated_response[:self.max_message_length] + "..."
                             
-                            return filtered_response
+                            return validated_response
                         else:
                             logger.warning("Empty response from Ollama streaming")
                             return None
@@ -452,15 +527,18 @@ When users ask about commands, provide accurate syntax and explain any cooldowns
                             # Filter out AI thinking before saving to conversation (unless show_thinking is True)
                             filtered_response = self.filter_ai_thinking(ai_response, show_thinking)
                             
+                            # Validate response for command hallucinations
+                            validated_response = self.validate_response_for_hallucinations(filtered_response)
+                            
                             # Add both user message and AI response to conversation
                             self.add_to_conversation(user_id, "user", prompt)
-                            self.add_to_conversation(user_id, "assistant", filtered_response)
+                            self.add_to_conversation(user_id, "assistant", validated_response)
                             
                             # Truncate if too long
-                            if len(filtered_response) > self.max_message_length:
-                                filtered_response = filtered_response[:self.max_message_length] + "..."
+                            if len(validated_response) > self.max_message_length:
+                                validated_response = validated_response[:self.max_message_length] + "..."
                             
-                            return filtered_response
+                            return validated_response
                         else:
                             logger.warning("Empty response from Ollama")
                             return None
@@ -476,15 +554,52 @@ When users ask about commands, provide accurate syntax and explain any cooldowns
             logger.error(f"Error generating AI response: {e}")
             return None
 
-    @commands.command(name='ai', aliases=['chat', 'aiask'])
+    def validate_response_for_hallucinations(self, response: str) -> str:
+        """Check response for potential command hallucinations and warn if found"""
+        # List of valid commands and their aliases
+        valid_commands = [
+            'ai', 'chat', 'aiask', 'ask', 'bronxai', 'aiclear', 'clearai', 'resetai', 
+            'clearconvo', 'resetconvo', 'aistatus', 'aiinfo', 'checkai',
+            'balance', 'bal', 'money', 'pay', 'give', 'send', 'deposit', 'dep', 'd',
+            'withdraw', 'with', 'w', 'daily', 'beg', 'rob', 'work', 'job', 'choosejob',
+            'leavejob', 'useitem', 'activeeffects', 'leaderboard', 'lb', 'rich', 'top',
+            'coinflip', 'cf', 'flip', 'slots', 'blackjack', 'bj', 'crash', 'roulette',
+            'rlt', 'plinko', 'doubleornothing', 'double', 'don', 'bomb',
+            'fish', 'inventory', 'inv', 'sell', 'shop', 'auto',
+            'ping', 'avatar', 'av', 'userinfo', 'ui', 'whois', 'serverinfo', 'si',
+            'guildinfo', 'uptime', 'botinfo', 'poll', 'yn', 'multipoll', 'timestamp',
+            'hexcolor', 'emojisteal', 'steal', 'emojiinfo', 'tinyurl', 'snipe',
+            'cleanup', 'cu', 'afk', 'calculate', 'calc', 'math',
+            'pick', 'choose', 'roll', '8ball', 'guess', 'spongebob', 'mock',
+            'reverse', 'tinytext', 'help', 'h', 'commands', 'invite', 'support'
+        ]
+        
+        import re
+        # Find all command-like patterns in the response
+        command_patterns = re.findall(r'`\.(\w+)`', response)
+        
+        hallucinated = []
+        for cmd in command_patterns:
+            if cmd.lower() not in [c.lower() for c in valid_commands]:
+                hallucinated.append(cmd)
+        
+        if hallucinated:
+            logger.warning(f"Potential command hallucinations detected: {hallucinated}")
+            # Add a disclaimer to the response
+            response += f"\n\n⚠️ **Note**: Please verify command syntax with `.help` - some commands mentioned may not be accurate."
+        
+        return response
+
+    @commands.command(name='ai', aliases=['chat', 'aiask', 'ask', 'bronxai'])
     @commands.cooldown(1, 30, commands.BucketType.user)
     async def ai_chat(self, ctx, *, prompt: str):
         """Chat with BronxBot AI powered by Deepseek-8B
         
-        Usage: !ai <your message>
-        Usage: !ai --thinking <your message>  (shows AI reasoning process)
-        Example: !ai What's the weather like in the Bronx?
-        Example: !ai --thinking Explain quantum physics
+        Usage: .ai <your message>
+        Usage: .ai --thinking <your message>  (shows AI reasoning process)
+        Aliases: .chat, .aiask, .ask, .bronxai
+        Example: .ai What's the weather like in the Bronx?
+        Example: .ai --thinking Explain quantum physics
         """
         # Check for thinking flag
         show_thinking = False
@@ -499,7 +614,7 @@ When users ask about commands, provide accurate syntax and explain any cooldowns
         if not prompt.strip():
             embed = discord.Embed(
                 title="❌ Empty Message",
-                description="Please provide a message after the flag.\nExample: `!ai --thinking explain quantum physics`",
+                description="Please provide a message after the flag.\nExample: `.ai --thinking explain quantum physics`",
                 color=discord.Color.red()
             )
             await ctx.send(embed=embed)
@@ -588,11 +703,12 @@ When users ask about commands, provide accurate syntax and explain any cooldowns
             )
             await message.edit(embed=error_embed)
 
-    @commands.command(name='aiclear', aliases=['clearai', 'resetai'])
+    @commands.command(name='aiclear', aliases=['clearai', 'resetai', 'clearconvo', 'resetconvo'])
     async def clear_conversation(self, ctx):
         """Clear your conversation history with the AI
         
-        Usage: !aiclear
+        Usage: .aiclear
+        Aliases: .clearai, .resetai, .clearconvo, .resetconvo
         """
         user_id = ctx.author.id
         
@@ -610,12 +726,13 @@ When users ask about commands, provide accurate syntax and explain any cooldowns
         
         logger.info(f"Conversation cleared for {ctx.author} ({ctx.author.id})")
 
-    @commands.command(name='aistatus')
+    @commands.command(name='aistatus', aliases=['aiinfo', 'checkai'])
     @commands.has_permissions(administrator=True)
     async def ai_status(self, ctx):
         """Check AI service status (Admin only)
         
-        Usage: !aistatus
+        Usage: .aistatus
+        Aliases: .aiinfo, .checkai
         """
         ollama_status = await self.check_ollama_status()
         model_status = await self.check_model_availability() if ollama_status else False

@@ -20,3 +20,14 @@ logs
 user_timezone.json
 fishing_simulation_results.json
 fishing_simulation_combined_data.json
+
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+botEvents/__pycache__/onCommand.cpython-312.pyc
+botEvents/__pycache__/onMessage.cpython-312.pyc
+botEvents/__pycache__/onReady.cpython-312.pyc

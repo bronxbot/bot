@@ -1,60 +1,417 @@
 import discord
 import json
+import math
 from discord.ext import commands
 from cogs.logging.logger import CogLogger
 from utils.error_handler import ErrorHandler
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 
 logger = CogLogger('Help')
 with open('data/config.json', 'r') as f:
     data = json.load(f)
 BOT_ADMINS = data['OWNER_IDS']
 
-class HelpPaginator(discord.ui.View):
-    def __init__(self, pages, author, timeout=180):
+class HierarchicalHelpView(discord.ui.View):
+    def __init__(self, bot, author, timeout=300):
         super().__init__(timeout=timeout)
-        self.pages = pages
+        self.bot = bot
         self.author = author
-        self.current_page = 0
         self.message = None
-        self.cog_page_map = {}  # Maps cog names to page indices
         
-        # Update button states
-        self.update_buttons()
-    
-    def update_buttons(self):
-        """Update button states based on current page"""
-        self.prev_button.disabled = len(self.pages) <= 1
-        self.next_button.disabled = len(self.pages) <= 1
+        # Navigation state
+        self.current_level = "main"  # main -> category -> subcategory -> commands
+        self.current_category = None
+        self.current_subcategory = None
+        self.current_page = 0
+        self.pages_per_level = {}
         
-        # Update labels to show page numbers
-        if len(self.pages) > 1:
-            self.page_info.label = f"{self.current_page + 1}/{len(self.pages)}"
+        # Data structure
+        self.help_data = self._build_help_structure()
+        
+        # Update interface
+        self._update_components()
     
-    @discord.ui.button(label="⬅️", style=discord.ButtonStyle.secondary, custom_id="prev")
-    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    def _build_help_structure(self):
+        """Build the hierarchical help structure from bot cogs"""
+        structure = {
+            'Economy': {
+                'emoji': '💰',
+                'description': 'Economy, work, trading, and money systems',
+                'subcategories': {
+                    'Core': ['Economy', 'Work'],
+                    'Trading': ['Trading', 'Shop', 'Bazaar'],
+                    'Games': ['Gambling'],
+                    'Events': ['Giveaway'],
+                    'Fishing': ['fishing']  # This maps to the fishing folder
+                }
+            },
+            'Fun & Games': {
+                'emoji': '🎮',
+                'description': 'Entertainment, games, and fun activities',
+                'subcategories': {
+                    'Text Games': ['Text', 'Cypher', 'MathRace'],
+                    'Interactive': ['Fun', 'TicTacToe'],
+                    'Multiplayer': ['Multiplayer']
+                }
+            },
+            'Utility & Tools': {
+                'emoji': '🔧',
+                'description': 'Server utilities and helpful tools',
+                'subcategories': {
+                    'General': ['Utility', 'Reminders'],
+                    'Information': ['Status', 'Stats'],
+                    'Communication': ['ModMail']
+                }
+            },
+            'Moderation': {
+                'emoji': '🛡️',
+                'description': 'Server management and moderation tools',
+                'subcategories': {
+                    'Core': ['Moderation'],
+                    'Community': ['VoteBans', 'Welcoming'],
+                    'Admin': ['Admin']
+                }
+            },
+            'Music': {
+                'emoji': '🎵',
+                'description': 'Music playback and audio features',
+                'subcategories': {
+                    'Player': ['music']  # This maps to the music folder
+                }
+            },
+            'Settings': {
+                'emoji': '⚙️',
+                'description': 'Bot configuration and server settings',
+                'subcategories': {
+                    'General': ['general'],
+                    'Features': ['moderation', 'economy', 'music', 'welcome', 'logging']
+                }
+            },
+            'AI & Automation': {
+                'emoji': '🤖', 
+                'description': 'AI integration and automated features',
+                'subcategories': {
+                    'AI Chat': ['AI'],
+                    'Auto Features': ['AutoFishing']
+                }
+            }
+        }
+        return structure
+    
+    def _get_commands_for_cog(self, cog_name_or_path: str) -> List[commands.Command]:
+        """Get commands from a cog name or module path"""
+        commands_list = []
+        
+        # Handle folder-based cogs (like fishing, music, settings)
+        if cog_name_or_path in ['fishing', 'music', 'general', 'moderation', 'economy', 'welcome', 'logging']:
+            # Get all cogs that start with this path
+            for cog_name, cog in self.bot.cogs.items():
+                module_path = cog.__module__.lower()
+                if cog_name_or_path in module_path:
+                    commands_list.extend([cmd for cmd in cog.get_commands() if not cmd.hidden])
+        else:
+            # Handle direct cog names
+            cog = self.bot.get_cog(cog_name_or_path)
+            if cog:
+                commands_list.extend([cmd for cmd in cog.get_commands() if not cmd.hidden])
+        
+        return sorted(commands_list, key=lambda x: x.name)
+    
+    def _update_components(self):
+        """Update all UI components based on current state"""
+        self.clear_items()
+        
+        if self.current_level == "main":
+            self._add_main_components()
+        elif self.current_level == "category":
+            self._add_category_components()
+        elif self.current_level == "subcategory":
+            self._add_subcategory_components()
+        elif self.current_level == "commands":
+            self._add_commands_components()
+    
+    def _add_main_components(self):
+        """Add components for main category selection"""
+        # Category select (Row 1)
+        category_select = discord.ui.Select(
+            placeholder="🏠 Choose a category...",
+            custom_id="category_select",
+            row=0
+        )
+        
+        for cat_name, cat_info in self.help_data.items():
+            category_select.add_option(
+                label=cat_name,
+                value=cat_name,
+                description=cat_info['description'][:100],
+                emoji=cat_info['emoji']
+            )
+        
+        category_select.callback = self._category_selected
+        self.add_item(category_select)
+        
+        # Quick access buttons (Row 2)
+        self.add_item(discord.ui.Button(
+            label="🔗 Invite", style=discord.ButtonStyle.link,
+            url="https://bronxbot.onrender.com/invite", row=1
+        ))
+        self.add_item(discord.ui.Button(
+            label="💬 Support", style=discord.ButtonStyle.link,
+            url="https://discord.gg/jvyYWkj3ts", row=1
+        ))
+        self.add_item(discord.ui.Button(
+            label="🌐 Website", style=discord.ButtonStyle.link,
+            url="https://bronxbot.onrender.com", row=1
+        ))
+        
+        # Delete button (Row 2)
+        delete_btn = discord.ui.Button(label="🗑️", style=discord.ButtonStyle.danger, row=1)
+        delete_btn.callback = self._delete_message
+        self.add_item(delete_btn)
+    
+    def _add_category_components(self):
+        """Add components for subcategory selection within a category"""
+        cat_info = self.help_data[self.current_category]
+        
+        # Subcategory select (Row 1)
+        if len(cat_info['subcategories']) > 1:
+            sub_select = discord.ui.Select(
+                placeholder=f"{cat_info['emoji']} Choose a subcategory...",
+                custom_id="subcategory_select",
+                row=0
+            )
+            
+            for sub_name, cog_list in cat_info['subcategories'].items():
+                command_count = sum(len(self._get_commands_for_cog(cog)) for cog in cog_list)
+                sub_select.add_option(
+                    label=sub_name,
+                    value=sub_name,
+                    description=f"{command_count} commands available"
+                )
+            
+            sub_select.callback = self._subcategory_selected
+            self.add_item(sub_select)
+        
+        # Navigation buttons (Row 2)
+        back_btn = discord.ui.Button(label="⬅️ Back", style=discord.ButtonStyle.secondary, row=1)
+        back_btn.callback = self._go_back
+        self.add_item(back_btn)
+        
+        # If only one subcategory, show direct access button
+        if len(cat_info['subcategories']) == 1:
+            sub_name = list(cat_info['subcategories'].keys())[0]
+            direct_btn = discord.ui.Button(
+                label=f"View {sub_name}", 
+                style=discord.ButtonStyle.primary, 
+                row=1
+            )
+            direct_btn.callback = lambda i: self._subcategory_selected_direct(i, sub_name)
+            self.add_item(direct_btn)
+        
+        delete_btn = discord.ui.Button(label="🗑️", style=discord.ButtonStyle.danger, row=1)
+        delete_btn.callback = self._delete_message
+        self.add_item(delete_btn)
+    
+    def _add_subcategory_components(self):
+        """Add components for command viewing within a subcategory"""
+        # Get commands for this subcategory
+        cat_info = self.help_data[self.current_category]
+        cog_list = cat_info['subcategories'][self.current_subcategory]
+        all_commands = []
+        
+        for cog_name in cog_list:
+            all_commands.extend(self._get_commands_for_cog(cog_name))
+        
+        # Pagination info
+        commands_per_page = 8
+        total_pages = math.ceil(len(all_commands) / commands_per_page) if all_commands else 1
+        
+        # Command select for current page (Row 1)
+        if all_commands:
+            start_idx = self.current_page * commands_per_page
+            end_idx = start_idx + commands_per_page
+            page_commands = all_commands[start_idx:end_idx]
+            
+            cmd_select = discord.ui.Select(
+                placeholder=f"📋 View command details ({len(all_commands)} total)...",
+                custom_id="command_select",
+                row=0
+            )
+            
+            for cmd in page_commands:
+                usage = f"/{cmd.name} {cmd.signature}".strip()
+                description = cmd.help or "No description"
+                if len(description) > 100:
+                    description = description[:97] + "..."
+                
+                cmd_select.add_option(
+                    label=usage,
+                    value=cmd.name,
+                    description=description
+                )
+            
+            cmd_select.callback = self._command_selected
+            self.add_item(cmd_select)
+        
+        # Navigation buttons (Row 2)
+        back_btn = discord.ui.Button(label="⬅️ Back", style=discord.ButtonStyle.secondary, row=1)
+        back_btn.callback = self._go_back
+        self.add_item(back_btn)
+        
+        # Pagination buttons (Row 2)
+        if total_pages > 1:
+            prev_btn = discord.ui.Button(
+                label="◀️", style=discord.ButtonStyle.primary, 
+                disabled=(self.current_page == 0), row=1
+            )
+            prev_btn.callback = self._prev_page
+            self.add_item(prev_btn)
+            
+            page_btn = discord.ui.Button(
+                label=f"{self.current_page + 1}/{total_pages}",
+                style=discord.ButtonStyle.secondary,
+                disabled=True, row=1
+            )
+            self.add_item(page_btn)
+            
+            next_btn = discord.ui.Button(
+                label="▶️", style=discord.ButtonStyle.primary,
+                disabled=(self.current_page >= total_pages - 1), row=1
+            )
+            next_btn.callback = self._next_page
+            self.add_item(next_btn)
+        
+        delete_btn = discord.ui.Button(label="🗑️", style=discord.ButtonStyle.danger, row=1)
+        delete_btn.callback = self._delete_message
+        self.add_item(delete_btn)
+    
+    def _add_commands_components(self):
+        """Add components for individual command view"""
+        # Navigation buttons (Row 1)
+        back_btn = discord.ui.Button(label="⬅️ Back to Commands", style=discord.ButtonStyle.secondary, row=0)
+        back_btn.callback = self._go_back
+        self.add_item(back_btn)
+        
+        home_btn = discord.ui.Button(label="🏠 Home", style=discord.ButtonStyle.primary, row=0)
+        home_btn.callback = self._go_home
+        self.add_item(home_btn)
+        
+        delete_btn = discord.ui.Button(label="🗑️", style=discord.ButtonStyle.danger, row=0)
+        delete_btn.callback = self._delete_message
+        self.add_item(delete_btn)
+    
+    # Callback methods
+    async def _category_selected(self, interaction: discord.Interaction):
         if interaction.user != self.author:
             return await interaction.response.send_message("This isn't your help menu!", ephemeral=True)
         
-        self.current_page = (self.current_page - 1) % len(self.pages)
-        self.update_buttons()
-        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+        self.current_category = interaction.data['values'][0]
+        self.current_level = "category"
+        self.current_page = 0
+        self._update_components()
+        
+        embed = self._get_category_embed()
+        await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="1/1", style=discord.ButtonStyle.primary, custom_id="page_info", disabled=True)
-    async def page_info(self, interaction: discord.Interaction, button: discord.ui.Button):
-        pass  # This button is just for display
-    
-    @discord.ui.button(label="➡️", style=discord.ButtonStyle.secondary, custom_id="next")
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def _subcategory_selected(self, interaction: discord.Interaction):
         if interaction.user != self.author:
             return await interaction.response.send_message("This isn't your help menu!", ephemeral=True)
         
-        self.current_page = (self.current_page + 1) % len(self.pages)
-        self.update_buttons()
-        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+        self.current_subcategory = interaction.data['values'][0]
+        self.current_level = "subcategory"
+        self.current_page = 0
+        self._update_components()
+        
+        embed = self._get_subcategory_embed()
+        await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="🗑️", style=discord.ButtonStyle.danger, custom_id="delete")
-    async def delete_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def _subcategory_selected_direct(self, interaction: discord.Interaction, subcategory: str):
+        if interaction.user != self.author:
+            return await interaction.response.send_message("This isn't your help menu!", ephemeral=True)
+        
+        self.current_subcategory = subcategory
+        self.current_level = "subcategory"
+        self.current_page = 0
+        self._update_components()
+        
+        embed = self._get_subcategory_embed()
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    async def _command_selected(self, interaction: discord.Interaction):
+        if interaction.user != self.author:
+            return await interaction.response.send_message("This isn't your help menu!", ephemeral=True)
+        
+        command_name = interaction.data['values'][0]
+        command = self.bot.get_command(command_name)
+        
+        if command:
+            self.current_level = "commands"
+            self._update_components()
+            
+            embed = self._get_command_embed(command)
+            await interaction.response.edit_message(embed=embed, view=self)
+    
+    async def _go_back(self, interaction: discord.Interaction):
+        if interaction.user != self.author:
+            return await interaction.response.send_message("This isn't your help menu!", ephemeral=True)
+        
+        if self.current_level == "commands":
+            self.current_level = "subcategory"
+        elif self.current_level == "subcategory":
+            self.current_level = "category"
+            self.current_subcategory = None
+        elif self.current_level == "category":
+            self.current_level = "main"
+            self.current_category = None
+        
+        self.current_page = 0
+        self._update_components()
+        
+        embed = self._get_current_embed()
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    async def _go_home(self, interaction: discord.Interaction):
+        if interaction.user != self.author:
+            return await interaction.response.send_message("This isn't your help menu!", ephemeral=True)
+        
+        self.current_level = "main"
+        self.current_category = None
+        self.current_subcategory = None
+        self.current_page = 0
+        self._update_components()
+        
+        embed = self._get_main_embed()
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    async def _prev_page(self, interaction: discord.Interaction):
+        if interaction.user != self.author:
+            return await interaction.response.send_message("This isn't your help menu!", ephemeral=True)
+        
+        self.current_page = max(0, self.current_page - 1)
+        self._update_components()
+        
+        embed = self._get_current_embed()
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    async def _next_page(self, interaction: discord.Interaction):
+        if interaction.user != self.author:
+            return await interaction.response.send_message("This isn't your help menu!", ephemeral=True)
+        
+        # Calculate max pages based on current context
+        if self.current_level == "subcategory":
+            cat_info = self.help_data[self.current_category]
+            cog_list = cat_info['subcategories'][self.current_subcategory]
+            all_commands = []
+            for cog_name in cog_list:
+                all_commands.extend(self._get_commands_for_cog(cog_name))
+            max_pages = math.ceil(len(all_commands) / 8) if all_commands else 1
+            self.current_page = min(max_pages - 1, self.current_page + 1)
+        
+        self._update_components()
+        embed = self._get_current_embed()
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    async def _delete_message(self, interaction: discord.Interaction):
         if interaction.user != self.author:
             return await interaction.response.send_message("Only the command author can delete this!", ephemeral=True)
         
@@ -62,21 +419,164 @@ class HelpPaginator(discord.ui.View):
         if self.message:
             await self.message.delete()
     
-    @discord.ui.select(
-        placeholder="Jump to category...",
-        custom_id="category_select",
-        row=1
-    )
-    async def select_category(self, interaction: discord.Interaction, select: discord.ui.Select):
-        if interaction.user != self.author:
-            return await interaction.response.send_message("This isn't your help menu!", ephemeral=True)
+    # Embed generation methods
+    def _get_current_embed(self):
+        """Get embed for current navigation state"""
+        if self.current_level == "main":
+            return self._get_main_embed()
+        elif self.current_level == "category":
+            return self._get_category_embed()
+        elif self.current_level == "subcategory":
+            return self._get_subcategory_embed()
+        elif self.current_level == "commands":
+            return self._get_main_embed()  # Fallback
+    
+    def _get_main_embed(self):
+        """Get main help embed"""
+        total_commands = sum(len([cmd for cmd in cog.get_commands() if not cmd.hidden]) 
+                           for cog in self.bot.cogs.values())
         
-        self.current_page = int(select.values[0])
-        self.update_buttons()
-        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
-
+        embed = discord.Embed(
+            title="🏠 Bronx Bot - Help Menu",
+            description=(
+                f"Welcome to Bronx Bot! Choose a category below to explore {total_commands} available commands.\n\n"
+                "**📋 Categories:**"
+            ),
+            color=0x2b2d31
+        )
+        
+        for cat_name, cat_info in self.help_data.items():
+            # Count commands in this category
+            cat_commands = 0
+            for subcategory, cog_list in cat_info['subcategories'].items():
+                for cog_name in cog_list:
+                    cat_commands += len(self._get_commands_for_cog(cog_name))
+            
+            embed.add_field(
+                name=f"{cat_info['emoji']} {cat_name}",
+                value=f"{cat_info['description']}\n*{cat_commands} commands*",
+                inline=True
+            )
+        
+        embed.set_footer(text=f"Use the dropdown menu to navigate • {len(self.bot.guilds)} servers")
+        return embed
+    
+    def _get_category_embed(self):
+        """Get category overview embed"""
+        cat_info = self.help_data[self.current_category]
+        
+        embed = discord.Embed(
+            title=f"{cat_info['emoji']} {self.current_category}",
+            description=cat_info['description'],
+            color=0x2b2d31
+        )
+        
+        for sub_name, cog_list in cat_info['subcategories'].items():
+            commands_count = sum(len(self._get_commands_for_cog(cog)) for cog in cog_list)
+            
+            # Get a sample of command names
+            sample_commands = []
+            for cog_name in cog_list[:2]:  # Limit to first 2 cogs
+                sample_commands.extend([cmd.name for cmd in self._get_commands_for_cog(cog_name)[:3]])
+            
+            value = f"**{commands_count} commands**"
+            if sample_commands:
+                value += f"\n`{', '.join(sample_commands[:4])}`"
+                if len(sample_commands) > 4:
+                    value += "..."
+            
+            embed.add_field(
+                name=f"📂 {sub_name}",
+                value=value,
+                inline=True
+            )
+        
+        embed.set_footer(text="Select a subcategory to view commands")
+        return embed
+    
+    def _get_subcategory_embed(self):
+        """Get subcategory commands embed"""
+        cat_info = self.help_data[self.current_category]
+        cog_list = cat_info['subcategories'][self.current_subcategory]
+        
+        # Get all commands
+        all_commands = []
+        for cog_name in cog_list:
+            all_commands.extend(self._get_commands_for_cog(cog_name))
+        
+        # Pagination
+        commands_per_page = 8
+        total_pages = math.ceil(len(all_commands) / commands_per_page) if all_commands else 1
+        start_idx = self.current_page * commands_per_page
+        end_idx = start_idx + commands_per_page
+        page_commands = all_commands[start_idx:end_idx]
+        
+        embed = discord.Embed(
+            title=f"📋 {self.current_category} → {self.current_subcategory}",
+            description=f"Commands in this category (Page {self.current_page + 1}/{total_pages})",
+            color=0x2b2d31
+        )
+        
+        if page_commands:
+            for cmd in page_commands:
+                usage = f"/{cmd.name} {cmd.signature}".strip()
+                description = cmd.help or "No description available"
+                if len(description) > 150:
+                    description = description[:147] + "..."
+                
+                embed.add_field(
+                    name=f"`{usage}`",
+                    value=description,
+                    inline=False
+                )
+        else:
+            embed.add_field(
+                name="No Commands",
+                value="No commands found in this category.",
+                inline=False
+            )
+        
+        embed.set_footer(text=f"Select a command above for detailed help • {len(all_commands)} total commands")
+        return embed
+    
+    def _get_command_embed(self, command):
+        """Get detailed command embed"""
+        embed = discord.Embed(
+            title=f"📖 Command: {command.name}",
+            color=0x2b2d31
+        )
+        
+        # Usage
+        usage = f"/{command.name} {command.signature}".strip()
+        embed.add_field(name="Usage", value=f"`{usage}`", inline=False)
+        
+        # Description
+        description = command.help or "No description available."
+        embed.add_field(name="Description", value=description, inline=False)
+        
+        # Aliases
+        if command.aliases:
+            aliases = ", ".join([f"`{alias}`" for alias in command.aliases])
+            embed.add_field(name="Aliases", value=aliases, inline=True)
+        
+        # Category info
+        cog_name = command.cog.qualified_name if command.cog else "Unknown"
+        embed.add_field(name="Category", value=cog_name, inline=True)
+        
+        # Subcommands (if it's a group)
+        if isinstance(command, commands.Group):
+            subcommands = [sub.name for sub in command.commands if not sub.hidden]
+            if subcommands:
+                sub_list = ", ".join([f"`{sub}`" for sub in subcommands[:10]])
+                if len(subcommands) > 10:
+                    sub_list += f" and {len(subcommands) - 10} more..."
+                embed.add_field(name="Subcommands", value=sub_list, inline=False)
+        
+        embed.set_footer(text="Use the command exactly as shown in the usage field")
+        return embed
+    
     async def on_timeout(self):
-        """Disable all buttons when the view times out"""
+        """Disable all components when the view times out"""
         for item in self.children:
             item.disabled = True
         
@@ -84,88 +584,15 @@ class HelpPaginator(discord.ui.View):
             try:
                 await self.message.edit(view=self)
             except discord.NotFound:
-                pass  # Message was already deleted
+                pass
 
 
 class Help(commands.Cog, ErrorHandler):
     def __init__(self, bot):
         ErrorHandler.__init__(self)
         self.bot = bot
-        
-        # Define category mappings and emojis
-        self.category_info = {
-            'Economy': {'emoji': '💰', 'description': 'Money, work, fishing, gambling'},
-            'Fun': {'emoji': '🎮', 'description': 'Games, entertainment, random fun'},
-            'Utility': {'emoji': '🔧', 'description': 'Server info, user tools, utilities'},
-            'Moderation': {'emoji': '🛡️', 'description': 'Admin tools, server management'},
-            'Music': {'emoji': '🎵', 'description': 'Music playback and queue'},
-            'Settings': {'emoji': '⚙️', 'description': 'Bot configuration and preferences'},
-            'Admin': {'emoji': '👑', 'description': 'Bot owner and admin commands'},
-            'Fishing': {'emoji': '🎣', 'description': 'Fishing system and related commands'},
-            'AutoFishing': {'emoji': '🤖', 'description': 'Automated fishing features'},
-            'Other': {'emoji': '📦', 'description': 'Miscellaneous commands'}
-        }
-        
-        # Define cog to category mappings
-        self.cog_categories = {
-            'Economy': ['Economy', 'Work', 'Gambling', 'Giveaway', 'Trading', 'Shop', 'Bazaar'],
-            'Fun': ['Fun', 'Text', 'Multiplayer', 'TicTacToe', 'Cypher', 'MathRace'],
-            'Utility': ['Utility', 'Reminders', 'Status'],
-            'Moderation': ['Moderation', 'VoteBans', 'Welcoming', 'Admin'],
-            'Music': ['MusicCore', 'MusicControls', 'MusicQueue', 'MusicPlayer'],
-            'Settings': ['GeneralSettings', 'ModerationSettings', 'EconomySettings', 'MusicSettings', 'WelcomeSettings', 'LoggingSettings'],
-            'Fishing': ['FishingCore', 'FishingInventory', 'FishingSelling', 'FishingStats'],
-            'AutoFishing': ['AutoFishing']
-        }
-        
-        logger.info("Help cog initialized")
-    
-    def _get_command_signature(self, command: Union[commands.Command, commands.Group]) -> str:
-        """Get a formatted command signature"""
-        if isinstance(command, commands.Group):
-            return f"{command.name} <subcommand>"
-        else:
-            return f"{command.name} {command.signature}".strip()
-    
-    def _format_command_help(self, command: Union[commands.Command, commands.Group]) -> str:
-        """Format command help text with proper truncation"""
-        if isinstance(command, commands.Group):
-            subcommands = [sub.name for sub in command.commands if not sub.hidden]
-            help_text = command.help or "Group command"
-            if subcommands:
-                help_text += f"\n**Subcommands:** {', '.join(subcommands[:5])}"
-                if len(subcommands) > 5:
-                    help_text += f" (+{len(subcommands) - 5} more)"
-        else:
-            help_text = command.help or "No description available"
-        
-        # Truncate if too long
-        if len(help_text) > 100:
-            help_text = help_text[:97] + "..."
-        
-        return help_text
-    
-    def _categorize_cog(self, cog_name: str) -> str:
-        """Determine which category a cog belongs to"""
-        for category, cogs in self.cog_categories.items():
-            if cog_name in cogs or cog_name.lower() in [c.lower() for c in cogs]:
-                return category
-        return 'Other'
-    
-    def _should_show_cog(self, cog_name: str, user_id: int) -> bool:
-        """Determine if a cog should be shown to the user"""
-        # Hidden cogs
-        hidden_cogs = ['help', 'jishaku', 'dev', 'performance', 'fishingmain', 'error']
-        if cog_name.lower() in hidden_cogs:
-            return False
-        
-        # Admin-only cogs
-        admin_cogs = ['admin']
-        if cog_name.lower() in admin_cogs and user_id not in BOT_ADMINS:
-            return False
-        
-        return True
-    
+        logger.info("Help cog initialized with hierarchical navigation")
+
     @commands.command(aliases=['support'])
     async def invite(self, ctx):
         """Get the bot's invite link & support server."""
@@ -175,25 +602,9 @@ class Help(commands.Cog, ErrorHandler):
     async def invite_slash(self, interaction: discord.Interaction):
         """Get the bot's invite link & support server."""
         await self._send_invite(interaction)
-    
+
     async def _send_invite(self, ctx_or_interaction):
         """Send invite information"""
-        embed = discord.Embed(
-            title="🔗 Invite & Support",
-            description=(
-                f"**[Add {self.bot.user.name} to your server]"
-                f"(https://discord.com/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot%20applications.commands)**\n\n"
-                "**[Join Support Server](https://discord.gg/jvyYWkj3ts)**\n"
-                "**[Source Code](https://github.com/bronxbot/bot)**\n\n"
-                "*Need help? Join our support server for assistance!*"
-            ),
-            color=self._get_color(ctx_or_interaction)
-        )
-        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-        await self._respond(ctx_or_interaction, embed)
-    
-    async def _send_invite(self, ctx_or_interaction):
-        """Shared logic for both command types"""
         embed = discord.Embed(
             title="invite bronx",
             url="https://bronxbot.onrender.com/invite",
@@ -217,189 +628,103 @@ class Help(commands.Cog, ErrorHandler):
     async def help_slash(self, interaction: discord.Interaction, command: str = None):
         """Slash command version of help"""
         await self._send_help(interaction, command)
-    
+
     async def _send_help(self, ctx_or_interaction, command=None):
-        """Shared logic for both command types"""
+        """Unified help logic using hierarchical navigation"""
+        author = ctx_or_interaction.user if isinstance(ctx_or_interaction, discord.Interaction) else ctx_or_interaction.author
+        
         if command:
-            # Check if it's a cog first
+            # Help for specific command or cog
+            cmd = self.bot.get_command(command.lower())
             cog = self.bot.get_cog(command)
-            if cog:
-                # Help for a cog
-                commands_list = cog.get_commands()
+            
+            if cmd:
+                # Show specific command help
+                embed = discord.Embed(
+                    title=f"📖 Command: {cmd.name}",
+                    color=0x2b2d31
+                )
+                
+                usage = f"/{cmd.name} {cmd.signature}".strip()
+                embed.add_field(name="Usage", value=f"`{usage}`", inline=False)
+                
+                description = cmd.help or "No description available."
+                embed.add_field(name="Description", value=description, inline=False)
+                
+                if cmd.aliases:
+                    aliases = ", ".join([f"`{alias}`" for alias in cmd.aliases])
+                    embed.add_field(name="Aliases", value=aliases, inline=True)
+                
+                cog_name = cmd.cog.qualified_name if cmd.cog else "Unknown"
+                embed.add_field(name="Category", value=cog_name, inline=True)
+                
+                if isinstance(cmd, commands.Group):
+                    subcommands = [sub.name for sub in cmd.commands if not sub.hidden]
+                    if subcommands:
+                        sub_list = ", ".join([f"`{sub}`" for sub in subcommands[:10]])
+                        if len(subcommands) > 10:
+                            sub_list += f" and {len(subcommands) - 10} more..."
+                        embed.add_field(name="Subcommands", value=sub_list, inline=False)
+                
+                embed.set_footer(text="Use the command exactly as shown in the usage field")
+                return await self._respond(ctx_or_interaction, embed)
+            
+            elif cog:
+                # Show cog help
+                commands_list = [cmd for cmd in cog.get_commands() if not cmd.hidden]
                 if not commands_list:
                     embed = discord.Embed(
-                        description=f"no commands found in `{cog.qualified_name}`",
+                        description=f"No commands found in `{cog.qualified_name}`",
                         color=discord.Color.red()
                     )
                     return await self._respond(ctx_or_interaction, embed)
                 
                 embed = discord.Embed(
-                    title=f"{cog.qualified_name} commands",
-                    description="\n".join(
-                        f"`/{cmd.name} {cmd.signature}` - {cmd.help or 'no description'}"
-                        for cmd in sorted(commands_list, key=lambda x: x.name)
-                    ),
-                    color=self._get_color(ctx_or_interaction)
+                    title=f"📂 {cog.qualified_name} Commands",
+                    color=0x2b2d31
                 )
-                embed.set_footer(text=f"{len(commands_list)} commands")
+                
+                for cmd in sorted(commands_list, key=lambda x: x.name)[:10]:  # Limit to 10 commands
+                    usage = f"/{cmd.name} {cmd.signature}".strip()
+                    description = cmd.help or "No description"
+                    if len(description) > 100:
+                        description = description[:97] + "..."
+                    
+                    embed.add_field(
+                        name=f"`{usage}`",
+                        value=description,
+                        inline=False
+                    )
+                
+                if len(commands_list) > 10:
+                    embed.add_field(
+                        name="More Commands",
+                        value=f"And {len(commands_list) - 10} more commands...",
+                        inline=False
+                    )
+                
+                embed.set_footer(text=f"{len(commands_list)} commands total")
                 return await self._respond(ctx_or_interaction, embed)
-
-            # Help for specific command
-            cmd = self.bot.get_command(command.lower())
-            if not cmd:
+            
+            else:
+                # Command not found
                 embed = discord.Embed(
-                    description=f"couldn't find command `{command}`",
+                    description=f"Couldn't find command or category `{command}`",
                     color=discord.Color.red()
                 )
                 return await self._respond(ctx_or_interaction, embed)
-            
-            embed = discord.Embed(
-                description=(
-                    f"`/{cmd.name} {cmd.signature}`\n"
-                    f"{cmd.help or 'no description'}\n"
-                    + (f"\n**aliases:** {', '.join([f'`{a}`' for a in cmd.aliases])}" if cmd.aliases else "")
-                ),
-                color=self._get_color(ctx_or_interaction)
-            )
-            return await self._respond(ctx_or_interaction, embed)
         
-        # Paginated help menu
-        pages = []
-        total_commands = 0
-        cog_page_map = {}
-        page_index = 1  # Start at 1 because overview is at 0
+        # Show main hierarchical help menu
+        view = HierarchicalHelpView(self.bot, author)
+        embed = view._get_main_embed()
         
-        # Group fishing-related cogs
-        fishing_commands = []
-        autofishing_commands = []
-        
-        for cog_name, cog in sorted(self.bot.cogs.items(), key=lambda x: x[0].lower()):
-            if cog_name.lower() in ['help', 'jishaku', 'dev', 'moderation', 'votebans', 'stats', 'welcoming', 'performance', 'fishingmain']:
-                continue
-
-            if isinstance(ctx_or_interaction, (discord.Interaction, commands.Context)):
-                user_id = ctx_or_interaction.user.id if isinstance(ctx_or_interaction, discord.Interaction) else ctx_or_interaction.author.id
-                if user_id not in BOT_ADMINS and cog_name.lower() in ['admin', 'owner']:
-                    continue
-            
-            commands_list = [cmd for cmd in cog.get_commands() if not cmd.hidden]
-            if not commands_list:
-                continue
-
-            # Handle fishing modules specially
-            if cog_name.lower() == 'autofishing':
-                autofishing_commands.extend(commands_list)
-                continue
-            elif cog_name.lower() in ['fishingcore', 'fishinginventory', 'fishingselling', 'fishingstats'] or (hasattr(cog, '__module__') and 'fishing' in cog.__module__ and cog_name.lower() != 'autofishing'):
-                fishing_commands.extend(commands_list)
-                continue
-
-            # Regular cog processing
-            cog_page_map[cog_name] = page_index
-            page_index += 1
-
-            embed = discord.Embed(
-                description=f"**{cog_name.lower()}**\n\n",
-                color=self._get_color(ctx_or_interaction)
-            )
-            
-            for cmd in sorted(commands_list, key=lambda x: x.name):
-                usage = f"/{cmd.name} {cmd.signature}".strip()
-                description = cmd.help or "no description"
-                if len(description) > 80:
-                    description = description[:77] + "..."
-                embed.description += f"`{usage}`\n{description}\n\n"
-                total_commands += 1
-            
-            embed.set_footer(text=f"{len(commands_list)} commands")
-            pages.append(embed)
-        
-        # Create Fishing page if we have fishing commands
-        if fishing_commands:
-            cog_page_map["Fishing"] = page_index
-            page_index += 1
-            
-            embed = discord.Embed(
-                description=f"**fishing**\n\n",
-                color=self._get_color(ctx_or_interaction)
-            )
-            
-            for cmd in sorted(fishing_commands, key=lambda x: x.name):
-                usage = f"/{cmd.name} {cmd.signature}".strip()
-                description = cmd.help or "no description"
-                if len(description) > 80:
-                    description = description[:77] + "..."
-                embed.description += f"`{usage}`\n{description}\n\n"
-                total_commands += 1
-            
-            embed.set_footer(text=f"{len(fishing_commands)} commands")
-            pages.append(embed)
-        
-        # Create AutoFishing page if we have autofishing commands
-        if autofishing_commands:
-            cog_page_map["AutoFishing"] = page_index
-            page_index += 1
-            
-            embed = discord.Embed(
-                description=f"**autofishing**\n\n",
-                color=self._get_color(ctx_or_interaction)
-            )
-            
-            for cmd in sorted(autofishing_commands, key=lambda x: x.name):
-                usage = f"/{cmd.name} {cmd.signature}".strip()
-                description = cmd.help or "no description"
-                if len(description) > 80:
-                    description = description[:77] + "..."
-                embed.description += f"`{usage}`\n{description}\n\n"
-                total_commands += 1
-            
-            embed.set_footer(text=f"{len(autofishing_commands)} commands")
-            pages.append(embed)
-
-        # Overview page
-        overview_embed = discord.Embed(
-            description=(
-                f"`/help <command>` for details\n\n"
-                f"**commands:** {total_commands}\n"
-                f"**categories:** {len(pages)}"
-            ),
-            color=self._get_color(ctx_or_interaction)
-        )
-        pages.insert(0, overview_embed)
-        
-        # Create and send paginator
-        author = ctx_or_interaction.user if isinstance(ctx_or_interaction, discord.Interaction) else ctx_or_interaction.author
-        view = HelpPaginator(pages, author)
-        
-        # Add select menu options
-        select = view.select_category
-        select.add_option(label="Overview", value="0", description="View all categories")
-        for cog_name, page_num in cog_page_map.items():
-            select.add_option(
-                label=cog_name,
-                value=str(page_num),
-                description=f"View {cog_name.lower()} commands"
-            )
-        
-        view.update_buttons()
         if isinstance(ctx_or_interaction, discord.Interaction):
-            message = await ctx_or_interaction.response.send_message(embed=pages[0], view=view)
-            if isinstance(message, discord.InteractionResponse):
-                # Need to fetch the message if it's an interaction response
-                message = await ctx_or_interaction.original_response()
+            message = await ctx_or_interaction.response.send_message(embed=embed, view=view)
+            view.message = await ctx_or_interaction.original_response()
         else:
-            message = await ctx_or_interaction.reply(embed=pages[0], view=view)
-        
-        view.message = message
-        view.cog_page_map = cog_page_map
-    
-    def _get_color(self, ctx_or_interaction):
-        """Get the color based on context or interaction"""
-        if isinstance(ctx_or_interaction, discord.Interaction):
-            return ctx_or_interaction.user.accent_color or discord.Color.blue()
-        else:
-            return ctx_or_interaction.author.accent_color or discord.Color.blue()
-    
+            message = await ctx_or_interaction.reply(embed=embed, view=view)
+            view.message = message
+
     async def _respond(self, ctx_or_interaction, embed):
         """Respond to either context or interaction"""
         if isinstance(ctx_or_interaction, discord.Interaction):
@@ -429,9 +754,8 @@ class Help(commands.Cog, ErrorHandler):
 async def setup(bot):
     try:
         await bot.add_cog(Help(bot))
-        # Sync commands
         await bot.tree.sync()
-        logger.info("Help cog loaded and commands synced")
+        logger.info("Help cog loaded with hierarchical navigation system")
     except Exception as e:
         logger.error(f"Failed to load Help cog: {e}")
         raise e
