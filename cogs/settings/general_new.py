@@ -1,9 +1,9 @@
 # General Server Settings
 # Handles permissions, command restrictions, and user/role management
 
-import discord
-from discord.ext import commands
-from discord import app_commands
+import nextcord
+from nextcord.ext import commands
+# from nextcord import app_commands  # Not available in nextcord
 from typing import Optional, List, Union
 import json
 from utils.db import db
@@ -23,7 +23,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def general_settings(self, ctx):
         """General server settings management"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔧 General Server Settings",
             description=(
                 "Configure general bot behavior for this server\n\n"
@@ -64,7 +64,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         whitelist = settings.get('command_whitelist', {})
         blacklist = settings.get('command_blacklist', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔧 General Settings Overview",
             color=0x3498db
         )
@@ -115,7 +115,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         if isinstance(prefixes, str):
             prefixes = [prefixes]
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📌 Server Prefixes",
             description=f"Current prefixes: `{'`, `'.join(prefixes)}`",
             color=0x3498db
@@ -152,7 +152,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         prefixes.append(prefix)
         await db.update_guild_settings(ctx.guild.id, {'prefixes': prefixes})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Prefix Added",
             description=f"Added prefix: `{prefix}`\nCurrent prefixes: `{'`, `'.join(prefixes)}`",
             color=0x2ecc71
@@ -177,7 +177,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         prefixes.remove(prefix)
         await db.update_guild_settings(ctx.guild.id, {'prefixes': prefixes})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Prefix Removed",
             description=f"Removed prefix: `{prefix}`\nCurrent prefixes: `{'`, `'.join(prefixes)}`",
             color=0x2ecc71
@@ -193,7 +193,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         if isinstance(prefixes, str):
             prefixes = [prefixes]
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📌 Server Prefixes",
             description=f"Current prefixes: `{'`, `'.join(prefixes)}`",
             color=0x3498db
@@ -205,7 +205,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def permission_settings(self, ctx):
         """Manage who can edit bot settings"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="👑 Permission Management",
             description="Configure who can modify bot settings",
             color=0x3498db
@@ -233,7 +233,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         manage_roles = perms.get('manage_roles', [])
         manage_users = perms.get('manage_users', [])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="👑 Current Permissions",
             color=0x3498db
         )
@@ -276,7 +276,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @add_permission.command(name='role')
     @commands.has_permissions(manage_guild=True)
-    async def add_role_permission(self, ctx, role: discord.Role):
+    async def add_role_permission(self, ctx, role: nextcord.Role):
         """Add role permission to edit settings"""
         settings = await db.get_guild_settings(ctx.guild.id)
         perms = settings.get('general_permissions', {})
@@ -289,7 +289,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         perms['manage_roles'] = manage_roles
         await db.update_guild_settings(ctx.guild.id, {'general_permissions': perms})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Permission Added",
             description=f"Role {role.mention} can now edit bot settings",
             color=0x2ecc71
@@ -298,7 +298,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @add_permission.command(name='user')
     @commands.has_permissions(manage_guild=True)
-    async def add_user_permission(self, ctx, user: discord.Member):
+    async def add_user_permission(self, ctx, user: nextcord.Member):
         """Add user permission to edit settings"""
         settings = await db.get_guild_settings(ctx.guild.id)
         perms = settings.get('general_permissions', {})
@@ -311,7 +311,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         perms['manage_users'] = manage_users
         await db.update_guild_settings(ctx.guild.id, {'general_permissions': perms})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Permission Added",
             description=f"User {user.mention} can now edit bot settings",
             color=0x2ecc71
@@ -326,7 +326,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @remove_permission.command(name='role')
     @commands.has_permissions(manage_guild=True)
-    async def remove_role_permission(self, ctx, role: discord.Role):
+    async def remove_role_permission(self, ctx, role: nextcord.Role):
         """Remove role permission to edit settings"""
         settings = await db.get_guild_settings(ctx.guild.id)
         perms = settings.get('general_permissions', {})
@@ -339,7 +339,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         perms['manage_roles'] = manage_roles
         await db.update_guild_settings(ctx.guild.id, {'general_permissions': perms})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Permission Removed",
             description=f"Role {role.mention} can no longer edit bot settings",
             color=0x2ecc71
@@ -348,7 +348,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @remove_permission.command(name='user')
     @commands.has_permissions(manage_guild=True)
-    async def remove_user_permission(self, ctx, user: discord.Member):
+    async def remove_user_permission(self, ctx, user: nextcord.Member):
         """Remove user permission to edit settings"""
         settings = await db.get_guild_settings(ctx.guild.id)
         perms = settings.get('general_permissions', {})
@@ -361,7 +361,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         perms['manage_users'] = manage_users
         await db.update_guild_settings(ctx.guild.id, {'general_permissions': perms})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Permission Removed",
             description=f"User {user.mention} can no longer edit bot settings",
             color=0x2ecc71
@@ -373,7 +373,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def whitelist_settings(self, ctx):
         """Manage command whitelists"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Command Whitelist Management",
             description="Configure which commands are allowed in channels/roles",
             color=0x2ecc71
@@ -398,7 +398,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         whitelist = settings.get('command_whitelist', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Command Whitelists",
             color=0x2ecc71
         )
@@ -441,7 +441,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @whitelist_settings.command(name='channel')
     @commands.has_permissions(manage_guild=True)
-    async def whitelist_channel(self, ctx, channel: discord.TextChannel, *, command: str):
+    async def whitelist_channel(self, ctx, channel: nextcord.TextChannel, *, command: str):
         """Whitelist a command in a specific channel"""
         settings = await db.get_guild_settings(ctx.guild.id)
         whitelist = settings.get('command_whitelist', {})
@@ -456,7 +456,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             whitelist['channels'] = channel_whitelist
             await db.update_guild_settings(ctx.guild.id, {'command_whitelist': whitelist})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Command Whitelisted",
                 description=f"Command `{command}` is now whitelisted in {channel.mention}",
                 color=0x2ecc71
@@ -467,7 +467,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @whitelist_settings.command(name='role')
     @commands.has_permissions(manage_guild=True)
-    async def whitelist_role(self, ctx, role: discord.Role, *, command: str):
+    async def whitelist_role(self, ctx, role: nextcord.Role, *, command: str):
         """Whitelist a command for a specific role"""
         settings = await db.get_guild_settings(ctx.guild.id)
         whitelist = settings.get('command_whitelist', {})
@@ -482,7 +482,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             whitelist['roles'] = role_whitelist
             await db.update_guild_settings(ctx.guild.id, {'command_whitelist': whitelist})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Command Whitelisted",
                 description=f"Command `{command}` is now whitelisted for {role.mention}",
                 color=0x2ecc71
@@ -496,7 +496,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def blacklist_settings(self, ctx):
         """Manage command blacklists"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="❌ Command Blacklist Management",
             description="Configure which commands are blocked in channels/roles",
             color=0xe74c3c
@@ -523,7 +523,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         blacklist = settings.get('command_blacklist', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="❌ Command Blacklists",
             color=0xe74c3c
         )
@@ -584,7 +584,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @blacklist_settings.command(name='channel')
     @commands.has_permissions(manage_guild=True)
-    async def blacklist_channel(self, ctx, channel: discord.TextChannel, *, command: str):
+    async def blacklist_channel(self, ctx, channel: nextcord.TextChannel, *, command: str):
         """Blacklist a command in a specific channel"""
         settings = await db.get_guild_settings(ctx.guild.id)
         blacklist = settings.get('command_blacklist', {})
@@ -599,7 +599,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             blacklist['channels'] = channel_blacklist
             await db.update_guild_settings(ctx.guild.id, {'command_blacklist': blacklist})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Command Blacklisted",
                 description=f"Command `{command}` is now blacklisted in {channel.mention}",
                 color=0xe74c3c
@@ -610,7 +610,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @blacklist_settings.command(name='role')
     @commands.has_permissions(manage_guild=True)
-    async def blacklist_role(self, ctx, role: discord.Role, *, command: str):
+    async def blacklist_role(self, ctx, role: nextcord.Role, *, command: str):
         """Blacklist a command for a specific role"""
         settings = await db.get_guild_settings(ctx.guild.id)
         blacklist = settings.get('command_blacklist', {})
@@ -625,7 +625,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             blacklist['roles'] = role_blacklist
             await db.update_guild_settings(ctx.guild.id, {'command_blacklist': blacklist})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Command Blacklisted",
                 description=f"Command `{command}` is now blacklisted for {role.mention}",
                 color=0xe74c3c
@@ -636,7 +636,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @blacklist_settings.command(name='user')
     @commands.has_permissions(manage_guild=True)
-    async def blacklist_user(self, ctx, user: discord.Member, *, command: str):
+    async def blacklist_user(self, ctx, user: nextcord.Member, *, command: str):
         """Blacklist a command for a specific user"""
         settings = await db.get_guild_settings(ctx.guild.id)
         blacklist = settings.get('command_blacklist', {})
@@ -651,7 +651,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             blacklist['users'] = user_blacklist
             await db.update_guild_settings(ctx.guild.id, {'command_blacklist': blacklist})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Command Blacklisted",
                 description=f"Command `{command}` is now blacklisted for {user.mention}",
                 color=0xe74c3c
@@ -665,7 +665,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def ignore_settings(self, ctx):
         """Manage ignored users/roles"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🚫 Ignore Management",
             description="Configure which users/roles the bot ignores completely",
             color=0x95a5a6
@@ -693,7 +693,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         ignored_roles = ignored.get('roles', [])
         ignored_users = ignored.get('users', [])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🚫 Currently Ignored",
             color=0x95a5a6
         )
@@ -736,7 +736,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @add_ignore.command(name='role')
     @commands.has_permissions(manage_guild=True)
-    async def add_ignore_role(self, ctx, role: discord.Role):
+    async def add_ignore_role(self, ctx, role: nextcord.Role):
         """Add role to ignore list"""
         settings = await db.get_guild_settings(ctx.guild.id)
         ignored = settings.get('ignored', {})
@@ -749,7 +749,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         ignored['roles'] = ignored_roles
         await db.update_guild_settings(ctx.guild.id, {'ignored': ignored})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Role Ignored",
             description=f"Bot will now ignore all commands from {role.mention}",
             color=0x2ecc71
@@ -758,7 +758,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @add_ignore.command(name='user')
     @commands.has_permissions(manage_guild=True)
-    async def add_ignore_user(self, ctx, user: discord.Member):
+    async def add_ignore_user(self, ctx, user: nextcord.Member):
         """Add user to ignore list"""
         settings = await db.get_guild_settings(ctx.guild.id)
         ignored = settings.get('ignored', {})
@@ -771,7 +771,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         ignored['users'] = ignored_users
         await db.update_guild_settings(ctx.guild.id, {'ignored': ignored})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ User Ignored",
             description=f"Bot will now ignore all commands from {user.mention}",
             color=0x2ecc71
@@ -786,7 +786,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @remove_ignore.command(name='role')
     @commands.has_permissions(manage_guild=True)
-    async def remove_ignore_role(self, ctx, role: discord.Role):
+    async def remove_ignore_role(self, ctx, role: nextcord.Role):
         """Remove role from ignore list"""
         settings = await db.get_guild_settings(ctx.guild.id)
         ignored = settings.get('ignored', {})
@@ -799,7 +799,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         ignored['roles'] = ignored_roles
         await db.update_guild_settings(ctx.guild.id, {'ignored': ignored})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Role Un-ignored",
             description=f"Bot will now respond to commands from {role.mention}",
             color=0x2ecc71
@@ -808,7 +808,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
 
     @remove_ignore.command(name='user')
     @commands.has_permissions(manage_guild=True)
-    async def remove_ignore_user(self, ctx, user: discord.Member):
+    async def remove_ignore_user(self, ctx, user: nextcord.Member):
         """Remove user from ignore list"""
         settings = await db.get_guild_settings(ctx.guild.id)
         ignored = settings.get('ignored', {})
@@ -821,14 +821,14 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         ignored['users'] = ignored_users
         await db.update_guild_settings(ctx.guild.id, {'ignored': ignored})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ User Un-ignored",
             description=f"Bot will now respond to commands from {user.mention}",
             color=0x2ecc71
         )
         await ctx.send(embed=embed)
 
-    def can_manage_settings(self, user: discord.Member, guild_settings: dict) -> bool:
+    def can_manage_settings(self, user: nextcord.Member, guild_settings: dict) -> bool:
         """Check if user can manage settings"""
         # Owner and manage_guild permission always can
         if user.guild_permissions.manage_guild or user.guild_permissions.administrator:
@@ -907,4 +907,4 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         await self.handle_error(ctx, error, "general settings")
 
 async def setup(bot):
-    await bot.add_cog(GeneralSettings(bot))
+    bot.add_cog(GeneralSettings(bot))

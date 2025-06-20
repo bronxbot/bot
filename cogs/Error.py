@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 import traceback
 
@@ -40,87 +40,87 @@ class Error(commands.Cog):
         try:
             if isinstance(error, commands.MissingPermissions):
                 perms = ', '.join(error.missing_permissions)
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Missing Permissions",
                     description=f"You need the following permissions: `{perms}`",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed, delete_after=10)
                 
             elif isinstance(error, commands.BotMissingPermissions):
                 perms = ', '.join(error.missing_permissions)
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Bot Missing Permissions",
                     description=f"I need the following permissions: `{perms}`",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed, delete_after=10)
                 
             elif isinstance(error, commands.NotOwner):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Access Denied",
                     description="This command can only be used by the bot owner.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed, delete_after=10)
                 
             elif isinstance(error, commands.MissingRequiredArgument):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Missing Argument",
                     description=f"Missing required argument: `{error.param.name}`\n"
                                f"Use `{ctx.prefix}help {command}` for usage information.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed, delete_after=15)
                 
             elif isinstance(error, commands.BadArgument):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Invalid Argument",
                     description=f"Invalid argument provided: {str(error)}\n"
                                f"Use `{ctx.prefix}help {command}` for usage information.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed, delete_after=15)
                 
             elif isinstance(error, commands.CommandOnCooldown):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="⏰ Command on Cooldown",
                     description=f"Try again in {error.retry_after:.1f}s",
-                    color=discord.Color.gold()
+                    color=nextcord.Color.gold()
                 )
                 await ctx.reply(embed=embed, delete_after=5)
                 
             elif isinstance(error, commands.DisabledCommand):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Command Disabled",
                     description="This command is currently disabled.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed, delete_after=10)
                 
             elif isinstance(error, commands.NoPrivateMessage):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Server Only",
                     description="This command cannot be used in direct messages.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed, delete_after=10)
                 
             elif isinstance(error, commands.CheckFailure):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Check Failed",
                     description="You don't meet the requirements to use this command.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed, delete_after=10)
                 
             else:
                 # Unhandled error occurred
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Unexpected Error",
                     description=f"An unexpected error occurred! Error ID: `{error_id}`\n"
                                "This has been logged and will be investigated.",
-                    color=discord.Color.dark_red()
+                    color=nextcord.Color.dark_red()
                 )
                 await ctx.reply(embed=embed, delete_after=30)
                 
@@ -135,7 +135,7 @@ class Error(commands.Cog):
 
 async def setup(bot):
     try:
-        await bot.add_cog(Error(bot))
+        bot.add_cog(Error(bot))
         logger.info("Error handling cog loaded successfully")
     except Exception as e:
         logger.error(f"Failed to load Error cog: {e}")

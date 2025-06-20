@@ -4,8 +4,8 @@ import random
 import math
 import asyncio
 from pathlib import Path
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 
 logger = CogLogger('MathRace')
@@ -17,7 +17,7 @@ class MathRace(commands.Cog):
         self.logger = CogLogger(self.__class__.__name__)
 
     @commands.command(aliases=['mathduel', 'md', 'math'])
-    async def mathrace(self, ctx, opponent: discord.Member = None, difficulty: int = 10):
+    async def mathrace(self, ctx, opponent: nextcord.Member = None, difficulty: int = 10):
         """Race to solve advanced math problems
         Difficulty levels: 1-30 (higher is harder)
         Example: .mathrace @User 15"""
@@ -38,12 +38,12 @@ class MathRace(commands.Cog):
                 "30 - Differential Equations": "`dy/dx = 2y`"
             }
 
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="Math Race Help",
                 description="Challenge someone to solve math problems!\n"
                             "Choose a difficulty from **1 (easiest)** to **30 (hardest)**.\n\n"
                             "**Difficulty Examples:**",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
 
             for level, example in examples.items():
@@ -54,27 +54,27 @@ class MathRace(commands.Cog):
 
         # Validate opponent
         if opponent == ctx.author:
-            return await ctx.reply(embed=discord.Embed(
+            return await ctx.reply(embed=nextcord.Embed(
                 description="You can't race against yourself!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             ))
         if opponent.bot:
-            return await ctx.reply(embed=discord.Embed(
+            return await ctx.reply(embed=nextcord.Embed(
                 description="Bots can't race!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             ))
 
         # Validate difficulty
         if not 1 <= difficulty <= 30:
-            return await ctx.reply(embed=discord.Embed(
+            return await ctx.reply(embed=nextcord.Embed(
                 description="Difficulty must be between 1 and 30!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             ))
 
         # Challenge message
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description=f"🧮 **{opponent.mention}**, {ctx.author.mention} challenged you to a difficulty {difficulty} Math Race!\nReact with ✅ to accept within 30 seconds!",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         challenge_msg = await ctx.send(embed=embed)
         await challenge_msg.add_reaction("✅")
@@ -89,9 +89,9 @@ class MathRace(commands.Cog):
         try:
             await self.bot.wait_for("reaction_add", timeout=30.0, check=check)
         except asyncio.TimeoutError:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"⌛ {opponent.mention} didn't accept the challenge in time!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -105,10 +105,10 @@ class MathRace(commands.Cog):
         time_limit = min(30 + (difficulty * 3), 120)
 
         # Send problem
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🧮 Math Race (Difficulty {difficulty})",
             description=f"**Problem:**\n```{problem}```",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         embed.set_footer(text=f"You have {time_limit} seconds to answer!")
         await ctx.send(embed=embed)
@@ -157,17 +157,17 @@ class MathRace(commands.Cog):
             )
             
             # Announce winner
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"🏆 **{winner_msg.author.mention}** solved it first!\n**Answer:** `{answer}`",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
             await ctx.send(embed=embed)
             
         except asyncio.TimeoutError:
             # Timeout if no one answered
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"⌛ Time's up! No one solved the problem.\n**Answer:** `{answer}`",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
 
@@ -368,6 +368,6 @@ class MathGame:
 
 async def setup(bot):
     try:
-        await bot.add_cog(MathRace(bot))
+        bot.add_cog(MathRace(bot))
     except Exception as e:
         raise e

@@ -1,16 +1,16 @@
-import discord
+import nextcord
 import random
 import json
 import datetime
 import asyncio
 import ast
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from typing import Optional
 from utils.error_handler import ErrorHandler
 from utils.restart_manager import RestartConfirmView
 
-class AdminRoleSelect(discord.ui.Select):
+class AdminRoleSelect(nextcord.ui.Select):
     """Select menu for admin roles"""
     def __init__(self, admin_roles, page=0):
         self.admin_roles = admin_roles
@@ -31,7 +31,7 @@ class AdminRoleSelect(discord.ui.Select):
             if len(description) > 100:
                 description = description[:97] + "..."
             
-            options.append(discord.SelectOption(
+            options.append(nextcord.SelectOption(
                 label=role.name[:100],  # Discord limit
                 value=str(role.id),
                 description=description,
@@ -45,7 +45,7 @@ class AdminRoleSelect(discord.ui.Select):
             max_values=1
         )
     
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         role_id = int(self.values[0])
         role = interaction.guild.get_role(role_id)
         
@@ -71,9 +71,9 @@ class AdminRoleSelect(discord.ui.Select):
             return
         
         # Create embed for role members
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🛡️ {role.name}",
-            color=role.color or discord.Color.blue(),
+            color=role.color or nextcord.Color.blue(),
             description=f"Showing {filter_type} with administrator permissions"
         )
         
@@ -96,7 +96,7 @@ class AdminRoleSelect(discord.ui.Select):
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-class AdminView(discord.ui.View):
+class AdminView(nextcord.ui.View):
     """View for admin listing with filters and role selection"""
     def __init__(self, ctx):
         super().__init__(timeout=300)
@@ -148,9 +148,9 @@ class AdminView(discord.ui.View):
         else:  # all
             filtered_admins = all_admins
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🛡️ Server Administrators",
-            color=discord.Color.blue(),
+            color=nextcord.Color.blue(),
             description=f"Showing **{self.current_filter}** with administrator permissions"
         )
         
@@ -199,21 +199,21 @@ class AdminView(discord.ui.View):
         embed.set_footer(text="Use the buttons below to filter results or select a role for details")
         return embed
     
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, interaction: nextcord.Interaction) -> bool:
         """Check if user can use this view"""
         if interaction.user != self.ctx.author:
             await interaction.response.send_message("❌ You cannot use this menu!", ephemeral=True)
             return False
         return True
 
-class FilterButton(discord.ui.Button):
+class FilterButton(nextcord.ui.Button):
     """Button for filtering admin list"""
     def __init__(self, label: str, filter_type: str, is_active: bool):
-        style = discord.ButtonStyle.primary if is_active else discord.ButtonStyle.secondary
+        style = nextcord.ButtonStyle.primary if is_active else nextcord.ButtonStyle.secondary
         super().__init__(label=label, style=style)
         self.filter_type = filter_type
     
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         view = self.view
         view.current_filter = self.filter_type
         view.update_components()
@@ -221,7 +221,7 @@ class FilterButton(discord.ui.Button):
         embed = await view.create_embed()
         await interaction.response.edit_message(embed=embed, view=view)
 
-class RolePageButton(discord.ui.Button):
+class RolePageButton(nextcord.ui.Button):
     """Button for navigating role pages"""
     def __init__(self, current_page: int, total_pages: int):
         self.current_page = current_page
@@ -234,9 +234,9 @@ class RolePageButton(discord.ui.Button):
             label = f"Role Page 1/{total_pages}"
             emoji = "◀️"
         
-        super().__init__(label=label, emoji=emoji, style=discord.ButtonStyle.secondary)
+        super().__init__(label=label, emoji=emoji, style=nextcord.ButtonStyle.secondary)
     
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         view = self.view
         
         if self.current_page < self.total_pages - 1:
@@ -271,11 +271,11 @@ class Utility(commands.Cog, ErrorHandler):
         await ctx.send(f"`{latency}ms`")
 
     @commands.command(aliases=['av'])
-    async def avatar(self, ctx, user: discord.Member = None):
+    async def avatar(self, ctx, user: nextcord.Member = None):
         """Show a user's avatar."""
         user = user or ctx.author
         self.logger.info(f"Avatar requested for {user.display_name}")
-        embed = discord.Embed(title=f"{user.display_name}'s Avatar", color=user.color)
+        embed = nextcord.Embed(title=f"{user.display_name}'s Avatar", color=user.color)
         embed.set_image(url=user.display_avatar.url)
         await ctx.reply(embed=embed)
 
@@ -293,7 +293,7 @@ class Utility(commands.Cog, ErrorHandler):
             # Match messages that start with the prefix or are from any bot
             return m.content.startswith(ctx.prefix) or m.author.bot
         
-        # For older versions of discord.py (1.x)
+        # For older versions of nextcord.py (1.x)
         try:
             deleted = await ctx.channel.purge(limit=limit, check=is_target, before=ctx.message)
         except Exception as e:
@@ -314,7 +314,7 @@ class Utility(commands.Cog, ErrorHandler):
     async def serverinfo(self, ctx):
         guild = ctx.guild
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description=(f"**{guild.name}**\n\n"
                       f"Members: `{guild.member_count}`\n"
                       f"Owner: `{guild.owner.display_name}`\n"
@@ -345,10 +345,10 @@ class Utility(commands.Cog, ErrorHandler):
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=['ui'])
-    async def userinfo(self, ctx, user: discord.Member = None):
+    async def userinfo(self, ctx, user: nextcord.Member = None):
         user = user or ctx.author
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description=(f"**{user.display_name}**\n\n"
                       f"Joined: `{user.joined_at.strftime('%Y-%m-%d')}`\n"
                       f"Registered: `{user.created_at.strftime('%Y-%m-%d')}`\n"
@@ -378,7 +378,7 @@ class Utility(commands.Cog, ErrorHandler):
 
     @commands.command(aliases=["ask", "yn", "yesno"])
     async def poll(self, ctx, *, question):
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description=f"❓ {question}\n\n✅ Yes | ❌ No",
             color=0x2b2d31
         )
@@ -410,7 +410,7 @@ class Utility(commands.Cog, ErrorHandler):
         minutes, seconds = divmod(remainder, 60)
         days, hours = divmod(hours, 24)
         self.logger.debug(f"Uptime requested: {days}d {hours}h {minutes}m {seconds}s")
-        embed = discord.Embed(description=f"```{days} days, {hours} hours, {minutes} minutes, {seconds} seconds```", color=0x2b2d31)
+        embed = nextcord.Embed(description=f"```{days} days, {hours} hours, {minutes} minutes, {seconds} seconds```", color=0x2b2d31)
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=['time'])
@@ -480,13 +480,13 @@ class Utility(commands.Cog, ErrorHandler):
                 return await ctx.reply("```invalid hex code```")
             self.logger.debug(f"Color preview generated for: #{hex_code}")
         url = f"https://singlecolorimage.com/get/{hex_code}/200x200"
-        embed = discord.Embed(color=int(hex_code.ljust(6, '0'), 16))
+        embed = nextcord.Embed(color=int(hex_code.ljust(6, '0'), 16))
         embed.set_image(url=url)
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=['steal', 'stl', 'addemoji'])
     @commands.has_permissions(manage_emojis=True)
-    async def emojisteal(self, ctx, emoji: discord.PartialEmoji):
+    async def emojisteal(self, ctx, emoji: nextcord.PartialEmoji):
         """add an emoji to this server"""
         self.logger.info(f"Emoji steal attempted: {emoji.name}")
         
@@ -512,7 +512,7 @@ class Utility(commands.Cog, ErrorHandler):
             await ctx.reply("```missing permissions or slot full```")
 
     @commands.command(aliases=['firstmsg'])
-    async def firstmessage(self, ctx, channel: discord.TextChannel = None):
+    async def firstmessage(self, ctx, channel: nextcord.TextChannel = None):
         """Fetch a channel's first message."""
         channel = channel or ctx.channel
         self.logger.debug(f"First message requested in #{channel.name}")
@@ -527,7 +527,7 @@ class Utility(commands.Cog, ErrorHandler):
     @commands.command(aliases=['remindme_old', 'remind_old'])
     async def reminder_old(self, ctx, time: str=None, *, message: str="You asked me to remind you, but didnt give me a reason."):
         """Legacy reminder command (use new .remind command for better features)"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⏰ Legacy Reminder Disabled",
             description=(
                 "This legacy reminder command has been replaced with a better version!\n\n"
@@ -552,15 +552,15 @@ class Utility(commands.Cog, ErrorHandler):
             return await ctx.reply("You need 2-10 options.")
         emojis = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
         desc = "\n".join(f"{emojis[i]} {opt}" for i, opt in enumerate(options))
-        embed = discord.Embed(title=question, description=desc, color=0x2b2d31)
+        embed = nextcord.Embed(title=question, description=desc, color=0x2b2d31)
         msg = await ctx.send(embed=embed)
         for i in range(len(options)):
             await msg.add_reaction(emojis[i])
 
     @commands.command()
-    async def roleinfo(self, ctx, *, role: discord.Role):
+    async def roleinfo(self, ctx, *, role: nextcord.Role):
         """Show info about a role."""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"Role: {role.name}",
             color=role.color
         )
@@ -574,22 +574,22 @@ class Utility(commands.Cog, ErrorHandler):
         await ctx.reply(embed=embed)
 
     @commands.command()
-    async def banner(self, ctx, user: discord.Member = None):
+    async def banner(self, ctx, user: nextcord.Member = None):
         """Show a user's banner."""
         user = user or ctx.author
         user = await ctx.guild.fetch_member(user.id)
         banner = user.banner
         if banner:
-            embed = discord.Embed(title=f"{user.display_name}'s Banner", color=user.color)
+            embed = nextcord.Embed(title=f"{user.display_name}'s Banner", color=user.color)
             embed.set_image(url=banner.url)
             await ctx.reply(embed=embed)
         else:
             await ctx.reply("User has no banner.")
 
     @commands.command()
-    async def emojiinfo(self, ctx, emoji: discord.PartialEmoji):
+    async def emojiinfo(self, ctx, emoji: nextcord.PartialEmoji):
         """Show info about a custom emoji."""
-        embed = discord.Embed(title=f"Emoji: {emoji.name}", color=0x2b2d31)
+        embed = nextcord.Embed(title=f"Emoji: {emoji.name}", color=0x2b2d31)
         embed.add_field(name="ID", value=emoji.id)
         embed.add_field(name="Animated", value=emoji.animated)
         embed.add_field(name="URL", value=emoji.url)
@@ -671,7 +671,7 @@ class Utility(commands.Cog, ErrorHandler):
             msg, deleted_at = entry
             # Only show if deleted within the last hour
             if (datetime.datetime.now() - deleted_at).total_seconds() <= 3600:
-                embed = discord.Embed(description=msg.content, color=0x2b2d31)
+                embed = nextcord.Embed(description=msg.content, color=0x2b2d31)
                 embed.set_author(name=str(msg.author), icon_url=msg.author.display_avatar.url)
                 embed.timestamp = msg.created_at
                 await ctx.reply(embed=embed)
@@ -688,7 +688,7 @@ class Utility(commands.Cog, ErrorHandler):
         minutes, seconds = divmod(remainder, 60)
         uptime_str = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
 
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="Bot Info",
             color=0x2b2d31,
             description=f"Uptime: {uptime_str}"
@@ -705,14 +705,14 @@ class Utility(commands.Cog, ErrorHandler):
         if ctx.command and ctx.command.cog_name == self.__class__.__name__:
             await self.handle_error(ctx, error)
 
-    def get_command_help(self) -> list[discord.Embed]:
+    def get_command_help(self) -> list[nextcord.Embed]:
         """Get paginated help embeds for this cog"""
         pages = []
         
         # Server Info Commands Page
-        info_embed = discord.Embed(
+        info_embed = nextcord.Embed(
             title="🔧 Utility Commands - Information",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         info_commands = ['serverinfo', 'userinfo', 'avatar', 'uptime']
         for cmd_name in info_commands:
@@ -726,9 +726,9 @@ class Utility(commands.Cog, ErrorHandler):
         pages.append(info_embed)
 
         # Time Commands Page
-        time_embed = discord.Embed(
+        time_embed = nextcord.Embed(
             title="🔧 Utility Commands - Time",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         time_commands = ['timestamp', 'countdown', 'uptime']
         for cmd_name in time_commands:
@@ -742,9 +742,9 @@ class Utility(commands.Cog, ErrorHandler):
         pages.append(time_embed)
 
         # Misc Utility Commands Page
-        misc_embed = discord.Embed(
+        misc_embed = nextcord.Embed(
             title="🔧 Utility Commands - Miscellaneous",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         misc_commands = ['ping', 'calculate', 'tinyurl', 'hexcolor']
         for cmd_name in misc_commands:
@@ -773,10 +773,10 @@ class Utility(commands.Cog, ErrorHandler):
             
             if not blocking_activities:
                 # Safe to restart immediately
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🔄 Restarting Bot",
                     description="No active games detected. Restarting now...",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
                 await ctx.reply(embed=embed)
                 
@@ -789,10 +789,10 @@ class Utility(commands.Cog, ErrorHandler):
             estimated_wait = await self._estimate_wait_time(blocking_activities)
             
             # Show blocking activities and estimated time
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⏳ Restart Delayed",
                 description="Bot will restart when activities complete",
-                color=discord.Color.orange()
+                color=nextcord.Color.orange()
             )
             
             # List blocking activities
@@ -971,10 +971,10 @@ class Utility(commands.Cog, ErrorHandler):
             
             if not blocking_activities:
                 # Conditions are now safe - restart
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🔄 Restarting Bot",
                     description="All activities completed. Restarting now...",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
                 embed.add_field(
                     name="⏰ Wait Time",
@@ -996,10 +996,10 @@ class Utility(commands.Cog, ErrorHandler):
                 try:
                     updated_wait = await self._estimate_wait_time(blocking_activities)
                     
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="⏳ Still Waiting to Restart",
                         description="Monitoring activities for safe restart window",
-                        color=discord.Color.orange()
+                        color=nextcord.Color.orange()
                     )
                     
                     activities_text = ""
@@ -1029,10 +1029,10 @@ class Utility(commands.Cog, ErrorHandler):
                     self.logger.error(f"Error updating restart status: {e}")
         
         # Timeout reached
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⚠️ Restart Timeout",
             description="Maximum wait time exceeded. Consider using 'restart force'",
-            color=discord.Color.red()
+            color=nextcord.Color.red()
         )
         embed.add_field(
             name="⏰ Total Wait Time",
@@ -1083,19 +1083,180 @@ class Utility(commands.Cog, ErrorHandler):
     @commands.is_owner()
     async def restart_force(self, ctx):
         """Force restart immediately (not recommended during active games)"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⚠️ Force Restart",
             description="This will restart immediately, potentially disrupting active games!",
-            color=discord.Color.red()
+            color=nextcord.Color.red()
         )
         
         view = RestartConfirmView(self, ctx)
         await ctx.reply(embed=embed, view=view)
 
+    @commands.command(name="quickhelp", aliases=['qh', 'info'])
+    async def quickhelp(self, ctx):
+        """Quick help command with essential information"""
+        embed = nextcord.Embed(
+            title="🤖 BronxBot Quick Help",
+            description="Essential commands and information",
+            color=0x2b2d31
+        )
+        
+        embed.add_field(
+            name="📋 Basic Commands",
+            value=(
+                "`!help` - Full help menu\n"
+                "`!ping` - Check bot latency\n"
+                "`!avatar` - Show user avatar\n"
+                "`!balance` - Check economy balance"
+            ),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🎮 Economy",
+            value=(
+                "`!work` - Earn money\n"
+                "`!daily` - Daily rewards\n"
+                "`!shop` - Browse shop\n"
+                "`!fish` - Go fishing"
+            ),
+            inline=True
+        )
+        
+        embed.add_field(
+            name="🎵 Music",
+            value=(
+                "`!play <song>` - Play music\n"
+                "`!queue` - Show queue\n"
+                "`!skip` - Skip current song\n"
+                "`!stop` - Stop playback"
+            ),
+            inline=True
+        )
+        
+        embed.add_field(
+            name="🔗 Links",
+            value=(
+                f"[Invite Bot](https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot)\n"
+                "[Support Server](https://discord.gg/bronx)\n"
+                "Use `!help` for complete command list"
+            ),
+            inline=False
+        )
+        
+        embed.set_footer(text=f"BronxBot • {len(self.bot.guilds)} servers")
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+        
+        await ctx.reply(embed=embed)
+        self.logger.info(f"Quick help shown to {ctx.author}")
+
+    @commands.command(name="sync_commands", aliases=['synchere', 'refresh'])
+    @commands.has_permissions(administrator=True)
+    async def sync_commands_here(self, ctx):
+        """Sync slash commands to this server (Admin only)"""
+        if not ctx.guild:
+            return await ctx.reply("❌ This command can only be used in a server!")
+        
+        # Check if user is bot owner or has admin perms
+        if ctx.author.id not in self.bot.owner_ids and not ctx.author.guild_permissions.administrator:
+            return await ctx.reply("❌ You need Administrator permissions to use this command!")
+        
+        try:
+            # Send initial message
+            msg = await ctx.reply("🔄 Syncing slash commands to this server...")
+            
+            # Debug: Check commands before sync
+            all_commands = self.bot.get_all_application_commands()
+            self.logger.info(f"About to sync to guild {ctx.guild.id}")
+            self.logger.info(f"Available commands before sync: {len(all_commands)}")
+            for cmd in all_commands:
+                guild_info = getattr(cmd, 'guild_ids', None) or 'Global'
+                self.logger.info(f"  - {cmd.name} (Guild: {guild_info})")
+            
+            # Sync commands
+            synced = await self.bot.sync_application_commands(guild_id=ctx.guild.id)
+            synced_count = len(synced) if synced else 0
+            
+            self.logger.info(f"Sync result type: {type(synced)}")
+            self.logger.info(f"Sync result: {synced}")
+            self.logger.info(f"Synced count: {synced_count}")
+            
+            # Update message with result
+            embed = nextcord.Embed(
+                title="✅ Slash Commands Synced!",
+                description=f"Successfully synced **{synced_count}** slash commands to **{ctx.guild.name}**",
+                color=0x00ff00
+            )
+            embed.add_field(
+                name="ℹ️ Note", 
+                value="Slash commands should now be available in this server!",
+                inline=False
+            )
+            embed.set_footer(text="Changes are instant for guild-specific syncs")
+            
+            await msg.edit(content=None, embed=embed)
+            self.logger.info(f"Synced {synced_count} slash commands to guild {ctx.guild.name} ({ctx.guild.id}) by {ctx.author}")
+            
+        except Exception as e:
+            await ctx.reply(f"❌ Error syncing slash commands: {str(e)}")
+            self.logger.error(f"Error syncing slash commands to guild: {e}")
+
+    @commands.command(name="commands", aliases=['cmdlist', 'textcommands'])
+    async def list_commands(self, ctx):
+        """Show a list of available text commands"""
+        embed = nextcord.Embed(
+            title="📝 Text Commands",
+            description="List of available prefix commands",
+            color=0x2b2d31
+        )
+        
+        # Get all commands and organize by cog
+        cog_commands = {}
+        for command in self.bot.commands:
+            if command.hidden:
+                continue
+                
+            cog_name = command.cog.qualified_name if command.cog else "No Category"
+            if cog_name not in cog_commands:
+                cog_commands[cog_name] = []
+            cog_commands[cog_name].append(f"`{command.name}`")
+        
+        # Add fields for each cog (limit to important ones)
+        important_cogs = [
+            "Utility", "Economy", "Help", "Music", "Fun", 
+            "Moderation", "Admin", "Gambling", "Trading"
+        ]
+        
+        for cog_name in important_cogs:
+            if cog_name in cog_commands:
+                commands_list = cog_commands[cog_name][:10]  # Limit to 10 commands
+                if len(cog_commands[cog_name]) > 10:
+                    commands_list.append("...")
+                
+                embed.add_field(
+                    name=f"🔧 {cog_name}",
+                    value=" ".join(commands_list) if commands_list else "None",
+                    inline=True
+                )
+        
+        embed.add_field(
+            name="ℹ️ Usage",
+            value=(
+                f"Use `{ctx.prefix}help <command>` for detailed help\n"
+                f"Use `{ctx.prefix}help` for the full interactive help menu"
+            ),
+            inline=False
+        )
+        
+        embed.set_footer(text=f"Prefix: {ctx.prefix} • Use /help for slash commands")
+        
+        await ctx.reply(embed=embed)
+        self.logger.info(f"Command list shown to {ctx.author}")
+
 async def setup(bot):
     logger = CogLogger("Utility")
     try:
-        await bot.add_cog(Utility(bot))
+        bot.add_cog(Utility(bot))
     except Exception as e:
         logger.error(f"Failed to load Utility cog: {e}")
         raise

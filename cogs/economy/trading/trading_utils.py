@@ -12,7 +12,7 @@ import random
 from utils.db import AsyncDatabase
 
 if TYPE_CHECKING:
-    import discord
+    import nextcord
 
 db = AsyncDatabase.get_instance()
 
@@ -238,11 +238,11 @@ class TradeFormatter:
     """Format trade information for display"""
     
     @staticmethod
-    def format_trade_embed(trade_offer, bot) -> 'discord.Embed':
+    def format_trade_embed(trade_offer, bot) -> 'nextcord.Embed':
         """Format a trade offer as a Discord embed"""
-        import discord
+        import nextcord
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🤝 Trade Offer #{trade_offer.trade_id}",
             color=0x3498db
         )
@@ -330,11 +330,11 @@ class TradeFormatter:
         return "\n".join(parts) if parts else "Nothing"
     
     @staticmethod
-    def format_trade_history_embed(trades: List[dict], user, bot) -> 'discord.Embed':
+    def format_trade_history_embed(trades: List[dict], user, bot) -> 'nextcord.Embed':
         """Format trade history as a Discord embed"""
-        import discord
+        import nextcord
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"📊 {user.display_name}'s Trade History",
             color=0x3498db
         )

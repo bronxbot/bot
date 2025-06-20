@@ -3,8 +3,8 @@ Ignore Manager
 Handles ignore functionality for users and roles.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import List
 
 from utils.db import AsyncDatabase
@@ -22,7 +22,7 @@ class IgnoreManager:
 
     async def show_ignored(self, ctx):
         """Show ignore management interface"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🙈 Ignore Management",
             description=(
                 "Manage ignored users and roles - bot will completely ignore them\n\n"
@@ -46,7 +46,7 @@ class IgnoreManager:
         ignored_roles = ignored.get('roles', [])
         ignored_users = ignored.get('users', [])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🙈 Ignored Users and Roles",
             color=0x95a5a6
         )
@@ -98,7 +98,7 @@ class IgnoreManager:
         embed.set_footer(text="Ignored users/roles cannot use any bot commands")
         await ctx.send(embed=embed)
 
-    async def add_ignore_role(self, ctx, role: discord.Role):
+    async def add_ignore_role(self, ctx, role: nextcord.Role):
         """Add a role to the ignore list"""
         settings = await db.get_guild_settings(ctx.guild.id)
         ignored = settings.get('ignored', {'roles': [], 'users': []})
@@ -114,7 +114,7 @@ class IgnoreManager:
         ignored['roles'].append(role.id)
         await db.update_guild_settings(ctx.guild.id, {'ignored': ignored})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Role Ignored",
             description=f"Role {role.mention} is now ignored by the bot",
             color=0x2ecc71
@@ -123,7 +123,7 @@ class IgnoreManager:
         await ctx.send(embed=embed)
         logger.info(f"Role {role.id} ({role.name}) added to ignore list in guild {ctx.guild.id}")
 
-    async def add_ignore_user(self, ctx, user: discord.Member):
+    async def add_ignore_user(self, ctx, user: nextcord.Member):
         """Add a user to the ignore list"""
         settings = await db.get_guild_settings(ctx.guild.id)
         ignored = settings.get('ignored', {'roles': [], 'users': []})
@@ -139,7 +139,7 @@ class IgnoreManager:
         ignored['users'].append(user.id)
         await db.update_guild_settings(ctx.guild.id, {'ignored': ignored})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ User Ignored",
             description=f"User {user.mention} is now ignored by the bot",
             color=0x2ecc71
@@ -148,7 +148,7 @@ class IgnoreManager:
         await ctx.send(embed=embed)
         logger.info(f"User {user.id} ({user.name}) added to ignore list in guild {ctx.guild.id}")
 
-    async def remove_ignore_role(self, ctx, role: discord.Role):
+    async def remove_ignore_role(self, ctx, role: nextcord.Role):
         """Remove a role from the ignore list"""
         settings = await db.get_guild_settings(ctx.guild.id)
         ignored = settings.get('ignored', {'roles': [], 'users': []})
@@ -160,7 +160,7 @@ class IgnoreManager:
         ignored['roles'].remove(role.id)
         await db.update_guild_settings(ctx.guild.id, {'ignored': ignored})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Role Un-ignored",
             description=f"Role {role.mention} is no longer ignored by the bot",
             color=0x2ecc71
@@ -169,7 +169,7 @@ class IgnoreManager:
         await ctx.send(embed=embed)
         logger.info(f"Role {role.id} ({role.name}) removed from ignore list in guild {ctx.guild.id}")
 
-    async def remove_ignore_user(self, ctx, user: discord.Member):
+    async def remove_ignore_user(self, ctx, user: nextcord.Member):
         """Remove a user from the ignore list"""
         settings = await db.get_guild_settings(ctx.guild.id)
         ignored = settings.get('ignored', {'roles': [], 'users': []})
@@ -181,7 +181,7 @@ class IgnoreManager:
         ignored['users'].remove(user.id)
         await db.update_guild_settings(ctx.guild.id, {'ignored': ignored})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ User Un-ignored",
             description=f"User {user.mention} is no longer ignored by the bot",
             color=0x2ecc71

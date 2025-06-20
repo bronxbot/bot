@@ -1,8 +1,8 @@
 # Moderation Settings
 # Handles auto-moderation, punishment settings, and moderation configuration
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import Optional, List, Dict, Union
 import json
 import asyncio
@@ -23,7 +23,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def moderation_settings(self, ctx):
         """Moderation settings management"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🛡️ Moderation Settings",
             description=(
                 "Configure moderation and auto-mod settings for this server\n\n"
@@ -44,7 +44,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         mod_settings = settings.get('moderation', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🛡️ Moderation Settings Overview",
             color=0xe74c3c
         )
@@ -93,7 +93,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def automod_settings(self, ctx):
         """Configure auto-moderation settings"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🤖 Auto-Moderation Settings",
             description="Configure automatic moderation features",
             color=0xe74c3c
@@ -124,7 +124,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         automod = settings.get('moderation', {}).get('automod', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🤖 Auto-Moderation Configuration",
             color=0xe74c3c
         )
@@ -211,7 +211,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         
         if all(param is None for param in [enabled, max_messages, time_window, action]):
             # Show current settings
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📨 Anti-Spam Configuration",
                 color=0xe74c3c
             )
@@ -256,7 +256,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         mod_settings['automod'] = automod
         await db.update_guild_settings(ctx.guild.id, {'moderation': mod_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Anti-Spam Updated",
             description="Anti-spam settings have been updated successfully!",
             color=0x2ecc71
@@ -287,7 +287,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         
         if all(param is None for param in [enabled, max_mentions, action]):
             # Show current settings
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📢 Anti-Mass Mention Configuration",
                 color=0xe74c3c
             )
@@ -327,7 +327,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         mod_settings['automod'] = automod
         await db.update_guild_settings(ctx.guild.id, {'moderation': mod_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Anti-Mass Mention Updated",
             description="Anti-mass mention settings have been updated successfully!",
             color=0x2ecc71
@@ -348,7 +348,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def punishment_settings(self, ctx):
         """Configure punishment escalation settings"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⚖️ Punishment System",
             description="Configure automatic punishment escalation based on warnings",
             color=0xe74c3c
@@ -384,7 +384,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
             'ban': {'enabled': True, 'delete_days': 1}
         })
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⚖️ Punishment System Configuration",
             color=0xe74c3c
         )
@@ -434,7 +434,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         })
         
         if all(param is None for param in [mute, kick, ban]):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📊 Current Warning Limits",
                 color=0xe74c3c
             )
@@ -482,7 +482,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         mod_settings['punishment'] = punishment
         await db.update_guild_settings(ctx.guild.id, {'moderation': mod_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Warning Limits Updated",
             description="Punishment warning limits have been updated!",
             color=0x2ecc71
@@ -502,7 +502,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def reset_moderation(self, ctx):
         """Reset all moderation settings to defaults"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⚠️ Reset Moderation Settings",
             description="Are you sure you want to reset ALL moderation settings to defaults?\nThis action cannot be undone!",
             color=0xff9500
@@ -534,21 +534,21 @@ class ModerationSettings(commands.Cog, ErrorHandler):
             
             await db.update_guild_settings(ctx.guild.id, {'moderation': default_settings})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Moderation Settings Reset",
                 description="All moderation settings have been reset to defaults.",
                 color=0x2ecc71
             )
             await message.edit(embed=embed, view=None)
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Reset Cancelled",
                 description="Moderation settings were not reset.",
                 color=0x95a5a6
             )
             await message.edit(embed=embed, view=None)
 
-    async def check_automod(self, message: discord.Message) -> bool:
+    async def check_automod(self, message: nextcord.Message) -> bool:
         """Check if message triggers auto-moderation"""
         if not message.guild or message.author.bot:
             return True
@@ -578,13 +578,13 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         
         return True
 
-    async def _check_spam(self, message: discord.Message, settings: dict) -> bool:
+    async def _check_spam(self, message: nextcord.Message, settings: dict) -> bool:
         """Check for spam and take action if needed"""
         # This would implement spam detection logic
         # For now, return False (no spam detected)
         return False
 
-    async def _check_mass_mentions(self, message: discord.Message, settings: dict) -> bool:
+    async def _check_mass_mentions(self, message: nextcord.Message, settings: dict) -> bool:
         """Check for mass mentions and take action if needed"""
         max_mentions = settings.get('max_mentions', 8)
         total_mentions = len(message.mentions) + len(message.role_mentions)
@@ -596,7 +596,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
             if delete_message:
                 try:
                     await message.delete()
-                except discord.HTTPException:
+                except nextcord.HTTPException:
                     pass
             
             # Take action based on settings
@@ -605,7 +605,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         
         return False
 
-    async def _check_caps(self, message: discord.Message, settings: dict) -> bool:
+    async def _check_caps(self, message: nextcord.Message, settings: dict) -> bool:
         """Check for excessive caps and take action if needed"""
         content = message.content
         min_length = settings.get('min_length', 10)
@@ -622,7 +622,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
             
             try:
                 await message.delete()
-            except discord.HTTPException:
+            except nextcord.HTTPException:
                 pass
             
             await self._take_action(message.author, message.guild, action, f"Excessive caps ({caps_percent:.1f}%)")
@@ -630,7 +630,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         
         return False
 
-    async def _check_links(self, message: discord.Message, settings: dict) -> bool:
+    async def _check_links(self, message: nextcord.Message, settings: dict) -> bool:
         """Check for unwanted links and take action if needed"""
         content = message.content.lower()
         
@@ -642,7 +642,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
                 
                 try:
                     await message.delete()
-                except discord.HTTPException:
+                except nextcord.HTTPException:
                     pass
                 
                 if action != 'delete':
@@ -651,7 +651,7 @@ class ModerationSettings(commands.Cog, ErrorHandler):
         
         return False
 
-    async def _take_action(self, user: discord.Member, guild: discord.Guild, action: str, reason: str):
+    async def _take_action(self, user: nextcord.Member, guild: nextcord.Guild, action: str, reason: str):
         """Take moderation action against a user"""
         try:
             if action == 'warn':
@@ -664,27 +664,27 @@ class ModerationSettings(commands.Cog, ErrorHandler):
                 await user.kick(reason=f"Auto-mod: {reason}")
             elif action == 'ban':
                 await user.ban(reason=f"Auto-mod: {reason}", delete_message_days=1)
-        except discord.HTTPException as e:
+        except nextcord.HTTPException as e:
             logger.error(f"Failed to take action {action} against {user}: {e}")
 
     async def cog_command_error(self, ctx, error):
         """Handle errors in this cog"""
         await self.handle_error(ctx, error, "moderation settings")
 
-class ConfirmView(discord.ui.View):
+class ConfirmView(nextcord.ui.View):
     def __init__(self):
         super().__init__(timeout=30)
         self.value = None
 
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.danger)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label='Confirm', style=nextcord.ButtonStyle.danger)
+    async def confirm(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         self.value = True
         self.stop()
 
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.secondary)
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label='Cancel', style=nextcord.ButtonStyle.secondary)
+    async def cancel(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         self.value = False
         self.stop()
 
 async def setup(bot):
-    await bot.add_cog(ModerationSettings(bot))
+    bot.add_cog(ModerationSettings(bot))

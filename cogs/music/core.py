@@ -3,8 +3,8 @@ Core music commands for BronxBot
 Handles basic music functionality: join, disconnect, play, stop
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import asyncio
 import logging
 from typing import Optional
@@ -36,9 +36,9 @@ class MusicCore(commands.Cog):
     async def join(self, ctx):
         """Join the user's voice channel"""
         if not ctx.author.voice:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need to be in a voice channel to use this command!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
 
@@ -47,17 +47,17 @@ class MusicCore(commands.Cog):
         # Check if bot is already connected to a voice channel
         if ctx.voice_client:
             if ctx.voice_client.channel == channel:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="✅ I'm already connected to your voice channel!",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
                 return await ctx.send(embed=embed)
             else:
                 # Move to the new channel
                 await ctx.voice_client.move_to(channel)
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"🔄 Moved to **{channel.name}**",
-                    color=discord.Color.blue()
+                    color=nextcord.Color.blue()
                 )
                 return await ctx.send(embed=embed)
         
@@ -66,17 +66,17 @@ class MusicCore(commands.Cog):
             voice_client = await channel.connect()
             self.add_voice_client(ctx.guild.id, voice_client)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"✅ Connected to **{channel.name}**",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
             await ctx.send(embed=embed)
             
         except Exception as e:
             logging.error(f"Error connecting to voice channel: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"❌ Failed to connect to voice channel: {str(e)}",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
 
@@ -84,9 +84,9 @@ class MusicCore(commands.Cog):
     async def disconnect(self, ctx):
         """Disconnect from the voice channel"""
         if not ctx.voice_client:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ I'm not connected to any voice channel!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
 
@@ -102,9 +102,9 @@ class MusicCore(commands.Cog):
         await ctx.voice_client.disconnect()
         self.remove_voice_client(ctx.guild.id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description="👋 Disconnected from voice channel",
-            color=discord.Color.orange()
+            color=nextcord.Color.orange()
         )
         await ctx.send(embed=embed)
 
@@ -113,9 +113,9 @@ class MusicCore(commands.Cog):
         """Play a song from YouTube"""
         # Check if user is in voice channel
         if not ctx.author.voice:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need to be in a voice channel to play music!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
 
@@ -125,16 +125,16 @@ class MusicCore(commands.Cog):
 
         # Check if bot is in the same voice channel as user
         if ctx.voice_client.channel != ctx.author.voice.channel:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need to be in the same voice channel as me!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
 
         # Show loading message
-        loading_embed = discord.Embed(
+        loading_embed = nextcord.Embed(
             description=f"🔍 Searching for: **{query}**",
-            color=discord.Color.yellow()
+            color=nextcord.Color.yellow()
         )
         message = await ctx.send(embed=loading_embed)
 
@@ -142,9 +142,9 @@ class MusicCore(commands.Cog):
             # Get alternative music player (now the main method)
             alt_player = self.bot.get_cog('AlternativeMusicPlayer')
             if not alt_player:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Music player is not available!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await message.edit(embed=embed)
 
@@ -152,9 +152,9 @@ class MusicCore(commands.Cog):
             search_results = await alt_player.search_youtube_multi(query, max_results=1)
             
             if not search_results:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"❌ No results found for: **{query}**",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await message.edit(embed=embed)
 
@@ -175,9 +175,9 @@ class MusicCore(commands.Cog):
                     queue_cog.add_to_queue(ctx.guild.id, source, ctx.author)
                     
                     uploader_text = f" by *{source.uploader}*" if source.uploader else ""
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         description=f"📋 Added to queue: **{source.title}**{uploader_text}",
-                        color=discord.Color.blue()
+                        color=nextcord.Color.blue()
                     )
                     if source.thumbnail:
                         embed.set_thumbnail(url=source.thumbnail)
@@ -239,9 +239,9 @@ class MusicCore(commands.Cog):
                     next_uploader_text = f" by *{next_uploader}*" if next_uploader else ""
                     description += f"\n\n*Next up: {next_title}{next_uploader_text}*"
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"🎵 Now playing: {description}",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
                 
                 if hasattr(audio_source, 'thumbnail') and audio_source.thumbnail:
@@ -253,17 +253,17 @@ class MusicCore(commands.Cog):
                 
             except Exception as play_error:
                 logging.error(f"Error playing audio: {play_error}")
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"❌ Error playing audio: {str(play_error)}\n\nThis might be due to YouTube restrictions. Try a different song.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await message.edit(embed=embed)
                 
         except Exception as e:
             logging.error(f"Error in play command: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"❌ An error occurred while trying to play the song: {str(e)}",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await message.edit(embed=embed)
 
@@ -271,16 +271,16 @@ class MusicCore(commands.Cog):
     async def stop(self, ctx):
         """Stop playing music and clear the queue"""
         if not ctx.voice_client:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ I'm not connected to any voice channel!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
 
         if not ctx.voice_client.is_playing():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Nothing is currently playing!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
 
@@ -292,44 +292,44 @@ class MusicCore(commands.Cog):
         # Stop playback
         ctx.voice_client.stop()
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description="⏹️ Stopped playing music and cleared the queue",
-            color=discord.Color.orange()
+            color=nextcord.Color.orange()
         )
         await ctx.send(embed=embed)
 
     @commands.command(name='search', aliases=['find'])
     async def search(self, ctx, *, query: str):
         """Search for songs without playing"""
-        loading_embed = discord.Embed(
+        loading_embed = nextcord.Embed(
             description=f"🔍 Searching for: **{query}**",
-            color=discord.Color.yellow()
+            color=nextcord.Color.yellow()
         )
         message = await ctx.send(embed=loading_embed)
         
         try:
             alt_player = self.bot.get_cog('AlternativeMusicPlayer')
             if not alt_player:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Music player is not available!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await message.edit(embed=embed)
 
             results = await alt_player.search_youtube_multi(query, max_results=5)
             
             if not results:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ No results found.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await message.edit(embed=embed)
                 return
             
             # Create search results embed
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"🔍 Search Results for: {query}",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
             
             description = ""
@@ -349,11 +349,11 @@ class MusicCore(commands.Cog):
             
         except Exception as e:
             logging.error(f"Search error: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"❌ Search failed: {str(e)}",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await message.edit(embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(MusicCore(bot))
+    bot.add_cog(MusicCore(bot))

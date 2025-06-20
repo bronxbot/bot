@@ -14,15 +14,15 @@ __all__ = ['MusicCore', 'MusicQueue', 'MusicControls', 'AlternativeMusicPlayer']
 async def setup(bot):
     """Setup function to load all music cogs - Alternative player is now primary"""
     # Load core music functionality first
-    await bot.add_cog(MusicCore(bot))
+    bot.add_cog(MusicCore(bot))
     
     # Load queue management
-    await bot.add_cog(MusicQueue(bot))
+    bot.add_cog(MusicQueue(bot))
     
     # Load music controls
-    await bot.add_cog(MusicControls(bot))
+    bot.add_cog(MusicControls(bot))
     
     # Load alternative music player (main implementation)
-    await bot.add_cog(AlternativeMusicPlayer(bot))
+    bot.add_cog(AlternativeMusicPlayer(bot))
     
     print("[Music] 🎵 All music modules loaded successfully with robust YouTube access")

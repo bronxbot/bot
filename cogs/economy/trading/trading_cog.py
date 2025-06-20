@@ -3,8 +3,8 @@ Main Trading Cog
 Core trading commands and functionality.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from utils.db import AsyncDatabase
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
@@ -46,7 +46,7 @@ class Trading(commands.Cog):
     async def trade(self, ctx):
         """🤝 Advanced Trading System - Trade items, currency, and more!"""
         if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🤝 Advanced Trading System",
                 description="Trade items and currency with other players safely and efficiently!",
                 color=0x3498db
@@ -105,7 +105,7 @@ class Trading(commands.Cog):
     
     @trade.command(name="offer")
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def trade_offer(self, ctx, target: discord.Member):
+    async def trade_offer(self, ctx, target: nextcord.Member):
         """Start a new trade offer with another user"""
         if target.id == ctx.author.id:
             return await ctx.send("❌ You can't trade with yourself!")
@@ -127,7 +127,7 @@ class Trading(commands.Cog):
         trade_offer = ModernTradeOffer(ctx.author.id, target.id, ctx.guild.id)
         self.active_trades[trade_offer.trade_id] = trade_offer
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🤝 Trade Started #{trade_offer.trade_id}",
             description=f"Trade offer created between {ctx.author.mention} and {target.mention}!\n\n"
                        f"Use `{ctx.prefix}trade add item <item>` to add items\n"
@@ -169,7 +169,7 @@ class Trading(commands.Cog):
         else:
             active_trade.target_items.append(item_data)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Item Added",
             description=f"Added **{amount}x {item_name.title()}** to your trade offer!",
             color=0x00ff00
@@ -202,7 +202,7 @@ class Trading(commands.Cog):
         else:
             active_trade.target_currency += amount
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Currency Added",
             description=f"Added **{amount:,}** {self.currency} to your trade offer!",
             color=0x00ff00
@@ -259,7 +259,7 @@ class Trading(commands.Cog):
                 
                 await ctx.send(f"✅ Trade offer sent to {target.mention}!")
                 
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 # Fallback to channel if DMs are disabled
                 message = await ctx.send(
                     f"{target.mention}, you have received a trade offer!",
@@ -281,7 +281,7 @@ class Trading(commands.Cog):
         if active_trade.trade_id in self.active_trades:
             del self.active_trades[active_trade.trade_id]
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="❌ Trade Cancelled",
             description=f"Trade #{active_trade.trade_id} has been cancelled.",
             color=0xff0000
@@ -290,7 +290,7 @@ class Trading(commands.Cog):
         await ctx.send(embed=embed)
     
     @trade.command(name="history")
-    async def trade_history(self, ctx, user: discord.Member = None):
+    async def trade_history(self, ctx, user: nextcord.Member = None):
         """View trade history for yourself or another user"""
         target_user = user or ctx.author
         
@@ -304,14 +304,14 @@ class Trading(commands.Cog):
             await ctx.send("❌ Error fetching trade history.")
     
     @trade.command(name="stats")
-    async def trade_stats(self, ctx, user: discord.Member = None):
+    async def trade_stats(self, ctx, user: nextcord.Member = None):
         """View detailed trading statistics"""
         target_user = user or ctx.author
         
         try:
             stats = await self.stats.get_user_stats(target_user.id, ctx.guild.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"📊 {target_user.display_name}'s Trading Stats",
                 color=0x3498db
             )
@@ -356,7 +356,7 @@ class Trading(commands.Cog):
             if not leaderboard:
                 return await ctx.send("❌ No trading data found for this server.")
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🏆 Trading Leaderboard",
                 description="Top traders in this server",
                 color=0xffd700
@@ -406,6 +406,6 @@ class Trading(commands.Cog):
             await ctx.send("❌ An error occurred while processing the command.")
 
 
-def setup(bot):
+async def setup(bot):
     """Setup function for the trading cog"""
     bot.add_cog(Trading(bot))

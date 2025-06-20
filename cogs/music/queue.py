@@ -3,14 +3,14 @@ Music Queue management for BronxBot
 Handles queue operations, interactive queue display, and queue manipulation
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from collections import deque
 from typing import Dict, List, Optional, Tuple
 import asyncio
 import logging
 
-class QueueView(discord.ui.View):
+class QueueView(nextcord.ui.View):
     """Interactive queue view with pagination and controls"""
     
     def __init__(self, queue_cog, guild_id: int, per_page: int = 10):
@@ -35,15 +35,15 @@ class QueueView(discord.ui.View):
         # Update clear button - disable if queue is empty
         self.clear_queue.disabled = queue_length == 0
     
-    def get_queue_embed(self) -> discord.Embed:
+    def get_queue_embed(self) -> nextcord.Embed:
         """Generate embed for current page of queue"""
         queue = self.queue_cog.get_queue(self.guild_id)
         
         if not queue:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📋 Music Queue",
                 description="Queue is empty! Use `.play <song>` to add songs.",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             return embed
         
@@ -52,9 +52,9 @@ class QueueView(discord.ui.View):
         end_idx = min(start_idx + self.per_page, len(queue))
         max_pages = max(1, (len(queue) + self.per_page - 1) // self.per_page)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Music Queue",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         # Add queue items for current page with simplified format
@@ -112,8 +112,8 @@ class QueueView(discord.ui.View):
         
         return embed
     
-    @discord.ui.button(label="◀️ Previous", style=discord.ButtonStyle.secondary)
-    async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="◀️ Previous", style=nextcord.ButtonStyle.secondary)
+    async def previous_page(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if self.current_page > 0:
             self.current_page -= 1
             self.update_buttons()
@@ -122,8 +122,8 @@ class QueueView(discord.ui.View):
         else:
             await interaction.response.defer()
     
-    @discord.ui.button(label="▶️ Next", style=discord.ButtonStyle.secondary)
-    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="▶️ Next", style=nextcord.ButtonStyle.secondary)
+    async def next_page(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         queue_length = len(self.queue_cog.get_queue(self.guild_id))
         max_pages = max(1, (queue_length + self.per_page - 1) // self.per_page)
         
@@ -135,14 +135,14 @@ class QueueView(discord.ui.View):
         else:
             await interaction.response.defer()
     
-    @discord.ui.button(label="🔄 Refresh", style=discord.ButtonStyle.primary)
-    async def refresh(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="🔄 Refresh", style=nextcord.ButtonStyle.primary)
+    async def refresh(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         self.update_buttons()
         embed = self.get_queue_embed()
         await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="🗑️ Clear", style=discord.ButtonStyle.danger)
-    async def clear_queue(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="🗑️ Clear", style=nextcord.ButtonStyle.danger)
+    async def clear_queue(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         # Check if user has permission to clear queue
         if not interaction.user.guild_permissions.manage_messages:
             await interaction.response.send_message("❌ You need 'Manage Messages' permission to clear the queue!", ephemeral=True)
@@ -154,8 +154,8 @@ class QueueView(discord.ui.View):
         embed = self.get_queue_embed()
         await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="🔀 Shuffle", style=discord.ButtonStyle.secondary)
-    async def shuffle_queue(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="🔀 Shuffle", style=nextcord.ButtonStyle.secondary)
+    async def shuffle_queue(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         # Check if user has permission to shuffle queue
         if not interaction.user.guild_permissions.manage_messages:
             await interaction.response.send_message("❌ You need 'Manage Messages' permission to shuffle the queue!", ephemeral=True)
@@ -178,10 +178,10 @@ class QueueView(discord.ui.View):
         
         # Try to edit the message to show it's timed out
         try:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📋 Music Queue",
                 description="❌ This queue display has timed out. Use `.queue` to view again.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await self.message.edit(embed=embed, view=self)
         except:
@@ -324,10 +324,10 @@ class MusicQueue(commands.Cog):
                     display_title = getattr(audio_source, 'title', source.title)
                     uploader_text = f" by *{getattr(audio_source, 'uploader', source.uploader or 'Unknown')}*" if getattr(audio_source, 'uploader', source.uploader) else ""
                     
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="🎵 Now Playing",
                         description=f"**{display_title}**{uploader_text}",
-                        color=discord.Color.green()
+                        color=nextcord.Color.green()
                     )
                     if hasattr(audio_source, 'thumbnail') and audio_source.thumbnail:
                         embed.set_thumbnail(url=audio_source.thumbnail)
@@ -375,9 +375,9 @@ class MusicQueue(commands.Cog):
         """Remove a song from the queue by its number"""
         # Check permissions
         if not ctx.author.guild_permissions.manage_messages:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need 'Manage Messages' permission to remove songs from the queue!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -385,14 +385,14 @@ class MusicQueue(commands.Cog):
         index -= 1
         
         if self.remove_from_queue(ctx.guild.id, index):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"✅ Removed song #{index + 1} from the queue",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Invalid song number! Use `.queue` to see song numbers.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
         
         await ctx.send(embed=embed)
@@ -402,9 +402,9 @@ class MusicQueue(commands.Cog):
         """Move a song from one position to another in the queue"""
         # Check permissions
         if not ctx.author.guild_permissions.manage_messages:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need 'Manage Messages' permission to move songs in the queue!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -413,14 +413,14 @@ class MusicQueue(commands.Cog):
         to_pos -= 1
         
         if self.move_song(ctx.guild.id, from_pos, to_pos):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"✅ Moved song from position #{from_pos + 1} to #{to_pos + 1}",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Invalid position numbers! Use `.queue` to see song positions.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
         
         await ctx.send(embed=embed)
@@ -430,21 +430,21 @@ class MusicQueue(commands.Cog):
         """Shuffle the music queue"""
         # Check permissions
         if not ctx.author.guild_permissions.manage_messages:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need 'Manage Messages' permission to shuffle the queue!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         if self.shuffle_queue(ctx.guild.id):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="🔀 Queue shuffled successfully!",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Queue is empty or has only one song!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
         
         await ctx.send(embed=embed)
@@ -454,24 +454,24 @@ class MusicQueue(commands.Cog):
         """Clear the music queue"""
         # Check permissions
         if not ctx.author.guild_permissions.manage_messages:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need 'Manage Messages' permission to clear the queue!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         queue_length = len(self.get_queue(ctx.guild.id))
         
         if queue_length == 0:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Queue is already empty!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
         else:
             self.clear_queue(ctx.guild.id)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"🗑️ Cleared {queue_length} songs from the queue",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
         
         await ctx.send(embed=embed)
@@ -480,9 +480,9 @@ class MusicQueue(commands.Cog):
     async def now_playing(self, ctx):
         """Show information about the currently playing song"""
         if not ctx.voice_client or not ctx.voice_client.is_playing():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Nothing is currently playing!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -491,10 +491,10 @@ class MusicQueue(commands.Cog):
         
         if now_playing_info:
             source, requester = now_playing_info
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎵 Now Playing",
                 description=f"**{getattr(source, 'title', 'Unknown')}**",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
             
             if hasattr(source, 'thumbnail') and source.thumbnail:
@@ -516,10 +516,10 @@ class MusicQueue(commands.Cog):
             # Fallback to voice client source
             if hasattr(ctx.voice_client.source, 'title'):
                 source = ctx.voice_client.source
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🎵 Now Playing",
                     description=f"**{getattr(source, 'title', 'Unknown')}**",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
                 
                 if hasattr(source, 'thumbnail') and source.thumbnail:
@@ -536,10 +536,10 @@ class MusicQueue(commands.Cog):
                     embed.add_field(name="Uploader", value=source.uploader, inline=True)
                 
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🎵 Now Playing",
                     description="Currently playing music",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
         
         # Show queue length
@@ -553,33 +553,33 @@ class MusicQueue(commands.Cog):
     async def next_song(self, ctx):
         """Skip to the next song in the queue"""
         if not ctx.voice_client:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ I'm not connected to any voice channel!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         if not ctx.voice_client.is_playing():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Nothing is currently playing!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         queue_length = len(self.get_queue(ctx.guild.id))
         if queue_length == 0:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ No songs in queue to skip to!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         # Skip current song
         ctx.voice_client.stop()
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description="⏭️ Skipped to next song!",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         await ctx.send(embed=embed)
     
@@ -587,17 +587,17 @@ class MusicQueue(commands.Cog):
     async def previous_song(self, ctx):
         """Play the previous song from history"""
         if not ctx.voice_client:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ I'm not connected to any voice channel!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         history = self.get_history(ctx.guild.id)
         if not history:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ No previous songs in history!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -626,11 +626,11 @@ class MusicQueue(commands.Cog):
             # If nothing is playing, start the previous song
             await self.play_next(ctx.guild.id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description=f"⏮️ Playing previous song: **{getattr(previous_song, 'title', 'Unknown')}**",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         await ctx.send(embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(MusicQueue(bot))
+    bot.add_cog(MusicQueue(bot))

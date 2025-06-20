@@ -3,8 +3,8 @@ Main Admin Cog
 Core admin commands and functionality.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from utils.db import AsyncDatabase
 from typing import Optional, List
@@ -36,7 +36,7 @@ class Admin(commands.Cog):
         self.buff_manager = BuffManager()
         self.system_admin = SystemAdmin(bot)
         
-        # Background tasks would be initialized here if using discord.ext.tasks
+        # Background tasks would be initialized here if using nextcord.ext.tasks
     
     def cog_unload(self):
         """Clean up when cog is unloaded"""
@@ -57,7 +57,7 @@ class Admin(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def shop_admin(self, ctx):
         """🏪 Shop administration commands"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"{ADMIN_CATEGORIES['shop']['emoji']} {ADMIN_CATEGORIES['shop']['name']}",
             description=ADMIN_CATEGORIES['shop']['description'],
             color=0x3498db
@@ -98,7 +98,7 @@ class Admin(commands.Cog):
         success = self.shop_manager.add_item_to_shop(shop_type, item_id, parsed_data)
         
         if success:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Item Added",
                 description=f"**{parsed_data['name']}** added to {shop_type} shop",
                 color=0x00ff00
@@ -135,7 +135,7 @@ class Admin(commands.Cog):
         if not items:
             return await ctx.send(f"❌ No items found in {shop_type} shop")
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🏪 {shop_type.title()} Shop Items",
             color=0x3498db
         )
@@ -169,12 +169,12 @@ class Admin(commands.Cog):
     # Economy Administration Commands
     @commands.command(name="reset")
     @commands.has_permissions(administrator=True)
-    async def reset_user_balance(self, ctx, user: discord.Member, new_balance: int = 0):
+    async def reset_user_balance(self, ctx, user: nextcord.Member, new_balance: int = 0):
         """Reset a user's balance"""
         success = await self.economy_admin.reset_user_balance(user.id, ctx.guild.id, new_balance)
         
         if success:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Balance Reset",
                 description=f"{user.mention}'s balance has been reset to {new_balance:,} {self.currency}",
                 color=0x00ff00
@@ -188,7 +188,7 @@ class Admin(commands.Cog):
     async def reset_economy(self, ctx, *, confirmation: Optional[str] = None):
         """Reset the entire guild economy (DANGEROUS)"""
         if not confirmation:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⚠️ DANGEROUS OPERATION",
                 description="This will reset ALL user balances and economy data for this server!\n\n"
                            f"Type `{ctx.prefix}reset_economy CONFIRM` to proceed.",
@@ -199,7 +199,7 @@ class Admin(commands.Cog):
         
         success, message = await self.economy_admin.reset_guild_economy(ctx.guild.id, confirmation)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔄 Economy Reset" if success else "❌ Reset Failed",
             description=message,
             color=0x00ff00 if success else 0xff0000
@@ -208,13 +208,13 @@ class Admin(commands.Cog):
     
     @commands.command(name="repair")
     @commands.has_permissions(administrator=True)
-    async def repair_user_data(self, ctx, user: discord.Member = None):
+    async def repair_user_data(self, ctx, user: nextcord.Member = None):
         """Repair corrupted user data"""
         target_user = user or ctx.author
         
         success, repairs = await self.economy_admin.repair_user_data(target_user.id, ctx.guild.id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔧 Data Repair Results",
             color=0x00ff00 if success else 0xff0000
         )
@@ -240,7 +240,7 @@ class Admin(commands.Cog):
         """Trigger a global buff"""
         if not buff_type:
             available_buffs = self.buff_manager.get_available_buff_types()
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✨ Available Buff Types",
                 color=0x9932cc
             )
@@ -257,7 +257,7 @@ class Admin(commands.Cog):
         
         success, message = await self.buff_manager.activate_buff(ctx.guild.id, buff_type)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✨ Buff Activation",
             description=message,
             color=0x00ff00 if success else 0xff0000
@@ -271,7 +271,7 @@ class Admin(commands.Cog):
         """Clear application commands"""
         success, message = await self.system_admin.clear_application_commands(ctx.guild.id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔧 Clear Commands",
             description=message,
             color=0x00ff00 if success else 0xff0000
@@ -287,7 +287,7 @@ class Admin(commands.Cog):
         if not stats:
             return await ctx.send("❌ Unable to retrieve bot statistics")
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📊 Bot Statistics",
             color=0x3498db
         )
@@ -324,12 +324,12 @@ class Admin(commands.Cog):
         message = await self.buff_manager.rotate_global_buff()
         self.logger.info(f"Global buff rotation: {message}")
         
-    # This would be a scheduled task if using discord.ext.tasks
+    # This would be a scheduled task if using nextcord.ext.tasks
     # @tasks.loop(hours=24)
     # async def rotate_global_buff_task(self):
     #     await self.rotate_global_buff()
 
 
-def setup(bot):
+async def setup(bot):
     """Setup function for the admin cog"""
     bot.add_cog(Admin(bot))

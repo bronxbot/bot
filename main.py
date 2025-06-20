@@ -25,9 +25,14 @@ if os.path.exists("data/restart_info.json"):
 if __name__ == "__main__":
     import platform
     
+    # Set logging level to reduce verbosity
+    logging.getLogger('nextcord.gateway').setLevel(logging.WARNING)
+    logging.getLogger('nextcord.client').setLevel(logging.WARNING)
+    logging.getLogger('nextcord.http').setLevel(logging.WARNING)
+    
     # Print startup info
     logging.info(f"Python version: {platform.python_version()}")
-    logging.info(f"Discord.py version: {discord.__version__}")
+    logging.info(f"Nextcord version: {nextcord.__version__}")
     logging.info(f"Starting BronxBot with {bot.shard_count} shards")
     
     # Run the Discord bot
@@ -36,13 +41,13 @@ if __name__ == "__main__":
         system("clear" if os.name == "posix" else "cls")
         if os.name == "posix":
             sys.stdout.write("\x1b]2;BronxBot (DEV)\x07")
-        bot.run(config['DEV_TOKEN'], log_handler=None)  # Disable default discord.py logging
+        bot.run(config['DEV_TOKEN'])  # Run with dev token
     else:
         try:
             system("clear" if os.name == "posix" else "cls")
             if os.name == "posix":
                 sys.stdout.write("\x1b]2;BronxBot\x07")
-            bot.run(config['TOKEN'], log_handler=None)  # Disable default discord.py logging
+            bot.run(config['TOKEN'])  # Run with production token
         except Exception as e:
             logging.error(f"Failed to start the bot: {e}")
             traceback.print_exc()

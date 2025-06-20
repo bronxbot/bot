@@ -1,7 +1,7 @@
-import discord
+import nextcord
 import random
 import asyncio
-from discord.ext import commands
+from nextcord.ext import commands
 from typing import Dict, Optional
 from cogs.logging.logger import CogLogger
 
@@ -26,41 +26,41 @@ class Multiplayer(commands.Cog):
         # Start active games cleanup task
         self.bot.loop.create_task(self.cleanup_active_games())
 
-    def _create_embed(self, description: str, color: discord.Color = discord.Color.blue()) -> discord.Embed:
+    def _create_embed(self, description: str, color: nextcord.Color = nextcord.Color.blue()) -> nextcord.Embed:
         """Helper to create consistent embeds"""
-        return discord.Embed(description=description, color=color)
+        return nextcord.Embed(description=description, color=color)
 
-    async def _validate_opponent(self, ctx, opponent: Optional[discord.Member], game_name: str) -> bool:
+    async def _validate_opponent(self, ctx, opponent: Optional[nextcord.Member], game_name: str) -> bool:
         """Validate opponent for multiplayer games"""
         if not opponent:
             await ctx.reply(embed=self._create_embed(
                 f"You need to mention someone to challenge them to {game_name}!",
-                discord.Color.red()
+                nextcord.Color.red()
             ))
             return False
 
         if opponent == ctx.author:
             await ctx.reply(embed=self._create_embed(
-                "You can't play against yourself!", discord.Color.red()
+                "You can't play against yourself!", nextcord.Color.red()
             ))
             return False
 
         if opponent.bot:
             await ctx.reply(embed=self._create_embed(
-                f"Bots can't play {game_name}!", discord.Color.red()
+                f"Bots can't play {game_name}!", nextcord.Color.red()
             ))
             return False
 
         game_key = f"{min(ctx.author.id, opponent.id)}-{max(ctx.author.id, opponent.id)}"
         if game_key in self.active_games:
             await ctx.reply(embed=self._create_embed(
-                "You already have an active game with this player!", discord.Color.red()
+                "You already have an active game with this player!", nextcord.Color.red()
             ))
             return False
 
         return True
 
-    async def _get_challenge_acceptance(self, ctx, opponent: discord.Member, game_name: str, timeout: int = 30) -> bool:
+    async def _get_challenge_acceptance(self, ctx, opponent: nextcord.Member, game_name: str, timeout: int = 30) -> bool:
         """Handle challenge acceptance logic"""
         game_key = f"{min(ctx.author.id, opponent.id)}-{max(ctx.author.id, opponent.id)}"
         self.active_games.add(game_key)
@@ -84,14 +84,14 @@ class Multiplayer(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send(embed=self._create_embed(
                 f"⌛ {opponent.mention} didn't accept the challenge in time.",
-                discord.Color.red()
+                nextcord.Color.red()
             ))
             return False
         finally:
             self.active_games.discard(game_key)
 
     @commands.command(aliases=['slotfight', 'slotsduel', 'sb'])
-    async def slotbattle(self, ctx, opponent: discord.Member = None):
+    async def slotbattle(self, ctx, opponent: nextcord.Member = None):
         """Challenge someone to a slot battle! Winner takes all, or the house wins if both lose."""
         if not await self._validate_opponent(ctx, opponent, "a slot battle"):
             return
@@ -99,7 +99,7 @@ class Multiplayer(commands.Cog):
         if not await self._get_challenge_acceptance(ctx, opponent, "SLOT BATTLE"):
             return
 
-        async def get_slot_result(player: discord.Member) -> Dict:
+        async def get_slot_result(player: nextcord.Member) -> Dict:
             """Generate slot result for a player"""
             slots = [random.choice(self.SLOT_EMOJIS) for _ in range(3)]
             result = " | ".join(slots)
@@ -140,16 +140,16 @@ class Multiplayer(commands.Cog):
         # Determine outcome
         if p1_result["win_amount"] > p2_result["win_amount"]:
             outcome = f"🏆 **{p1_result['name']} WINS ${total_pot}!**"
-            color = discord.Color.green()
+            color = nextcord.Color.green()
         elif p2_result["win_amount"] > p1_result["win_amount"]:
             outcome = f"🏆 **{p2_result['name']} WINS ${total_pot}!**"
-            color = discord.Color.green()
+            color = nextcord.Color.green()
         elif p1_result["win_amount"] > 0:
             outcome = f"🤝 **Tie! Both win ${p1_result['win_amount']}.**"
-            color = discord.Color.blue()
+            color = nextcord.Color.blue()
         else:
             outcome = "🏦 **The house wins! Both players lose.**"
-            color = discord.Color.red()
+            color = nextcord.Color.red()
 
         result_embed = self._create_embed(
             f"**{p1_result['name']}**\n🎰 {p1_result['result']} ({p1_result['win_status']})\n"
@@ -160,7 +160,7 @@ class Multiplayer(commands.Cog):
         await msg.edit(embed=result_embed)
 
     @commands.command(aliases=['dicebattle', 'db'])
-    async def rollfight(self, ctx, opponent: discord.Member = None):
+    async def rollfight(self, ctx, opponent: nextcord.Member = None):
         """Challenge someone to a dice duel (highest roll wins)"""
         if not await self._validate_opponent(ctx, opponent, "a dice battle"):
             return
@@ -172,11 +172,11 @@ class Multiplayer(commands.Cog):
 
         if p1_roll == p2_roll:
             result = "**It's a tie!**"
-            color = discord.Color.gold()
+            color = nextcord.Color.gold()
         else:
             winner = ctx.author.display_name if p1_roll > p2_roll else opponent.display_name
             result = f"🏆 **{winner} wins!**"
-            color = discord.Color.green()
+            color = nextcord.Color.green()
 
         await ctx.send(embed=self._create_embed(
             f"**{ctx.author.display_name}**: {p1_roll}\n"
@@ -185,7 +185,7 @@ class Multiplayer(commands.Cog):
         ))
 
     @commands.command(aliases=['21game', '21'])
-    async def twentyone(self, ctx, opponent: discord.Member = None):
+    async def twentyone(self, ctx, opponent: nextcord.Member = None):
         """Take turns counting to 21 (who says 21 loses)"""
         if not await self._validate_opponent(ctx, opponent, "a game of 21"):
             return
@@ -215,16 +215,16 @@ class Multiplayer(commands.Cog):
                 turn += 1
             except asyncio.TimeoutError:
                 return await ctx.send(embed=self._create_embed(
-                    f"{player.display_name} took too long!", discord.Color.red()
+                    f"{player.display_name} took too long!", nextcord.Color.red()
                 ))
 
         loser = players[(turn - 1) % 2]
         await ctx.send(embed=self._create_embed(
-            f"💀 **{loser.display_name} said 21 and loses!**", discord.Color.red()
+            f"💀 **{loser.display_name} said 21 and loses!**", nextcord.Color.red()
         ))
 
     @commands.command(aliases=['rps3', 'rps'])
-    async def rockpaperscissors3(self, ctx, opponent: discord.Member = None, games: int = 3):
+    async def rockpaperscissors3(self, ctx, opponent: nextcord.Member = None, games: int = 3):
         """Best 2 out of 3 rock-paper-scissors"""
         if not await self._validate_opponent(ctx, opponent, f"best of {games} RPS"):
             return
@@ -246,7 +246,7 @@ class Multiplayer(commands.Cog):
                     f"Choose for round {round_num}: `rock`, `paper`, or `scissors`"
                 ))
                 def check(m):
-                    return (m.author == player and isinstance(m.channel, discord.DMChannel) and
+                    return (m.author == player and isinstance(m.channel, nextcord.DMChannel) and
                             m.content.lower() in choices)
                 resp = await self.bot.wait_for('message', check=check, timeout=30)
                 return resp.content.lower()
@@ -257,21 +257,21 @@ class Multiplayer(commands.Cog):
                 )
             except asyncio.TimeoutError:
                 return await ctx.send(embed=self._create_embed(
-                    "Someone didn't choose in time", discord.Color.red()
+                    "Someone didn't choose in time", nextcord.Color.red()
                 ))
 
             # Determine round winner
             if p1_choice == p2_choice:
                 result = "**Tie!**"
-                color = discord.Color.gold()
+                color = nextcord.Color.gold()
             elif win_conditions.get((p1_choice, p2_choice)):
                 wins[ctx.author] += 1
                 result = f"**{ctx.author.display_name} wins round {round_num}!**"
-                color = discord.Color.green()
+                color = nextcord.Color.green()
             else:
                 wins[opponent] += 1
                 result = f"**{opponent.display_name} wins round {round_num}!**"
-                color = discord.Color.green()
+                color = nextcord.Color.green()
 
             await ctx.send(embed=self._create_embed(
                 f"{ctx.author.display_name}: {p1_choice}\n"
@@ -285,11 +285,11 @@ class Multiplayer(commands.Cog):
 
         overall_winner = max(wins, key=wins.get)
         await ctx.send(embed=self._create_embed(
-            f"🏆 **{overall_winner.display_name} wins the match!**", discord.Color.green()
+            f"🏆 **{overall_winner.display_name} wins the match!**", nextcord.Color.green()
         ))
 
     @commands.command(aliases=['yacht', 'yd'])
-    async def yachtdice(self, ctx, opponent: discord.Member = None):
+    async def yachtdice(self, ctx, opponent: nextcord.Member = None):
         """Play a simplified Yacht dice game"""
         if not await self._validate_opponent(ctx, opponent, "yacht dice"):
             return
@@ -311,11 +311,11 @@ class Multiplayer(commands.Cog):
 
         if p1_score == p2_score:
             result = "**It's a tie!**"
-            color = discord.Color.gold()
+            color = nextcord.Color.gold()
         else:
             winner = ctx.author if p1_score > p2_score else opponent
             result = f"🏆 **{winner.display_name} wins!**"
-            color = discord.Color.green()
+            color = nextcord.Color.green()
 
         await ctx.send(embed=self._create_embed(
             f"{ctx.author.display_name}: {p1_score}\n"
@@ -324,7 +324,7 @@ class Multiplayer(commands.Cog):
         ))
 
     @commands.command(aliases=['wordchain', 'wc'])
-    async def word_chain(self, ctx, opponent: discord.Member = None):
+    async def word_chain(self, ctx, opponent: nextcord.Member = None):
         """Play a word chain game! Each word must start with the last letter of the previous word. No repeats!"""
         if not await self._validate_opponent(ctx, opponent, "word chain"):
             return
@@ -355,26 +355,26 @@ class Multiplayer(commands.Cog):
                 msg = await self.bot.wait_for('message', check=check, timeout=30)
             except asyncio.TimeoutError:
                 await ctx.send(embed=self._create_embed(
-                    f"{player.display_name} took too long! They lose.", discord.Color.red()
+                    f"{player.display_name} took too long! They lose.", nextcord.Color.red()
                 ))
                 break
 
             word = msg.content.strip().lower()
             if not word.isalpha():
                 await ctx.send(embed=self._create_embed(
-                    "Please use a single word with only letters.", discord.Color.red()
+                    "Please use a single word with only letters.", nextcord.Color.red()
                 ))
                 continue
 
             if word in used_words:
                 await ctx.send(embed=self._create_embed(
-                    f"{player.display_name} repeated a word! They lose.", discord.Color.red()
+                    f"{player.display_name} repeated a word! They lose.", nextcord.Color.red()
                 ))
                 break
 
             if last_letter and word[0] != last_letter:
                 await ctx.send(embed=self._create_embed(
-                    f"{player.display_name} used the wrong starting letter! They lose.", discord.Color.red()
+                    f"{player.display_name} used the wrong starting letter! They lose.", nextcord.Color.red()
                 ))
                 break
 
@@ -384,7 +384,7 @@ class Multiplayer(commands.Cog):
 
         winner = players[(turn + 1) % 2]
         await ctx.send(embed=self._create_embed(
-            f"🏆 **{winner.display_name} wins the word chain game!**", discord.Color.green()
+            f"🏆 **{winner.display_name} wins the word chain game!**", nextcord.Color.green()
         ))
 
     async def cleanup_active_games(self):
@@ -404,7 +404,7 @@ class Multiplayer(commands.Cog):
 
 async def setup(bot):
     try:
-        await bot.add_cog(Multiplayer(bot))
+        bot.add_cog(Multiplayer(bot))
     except Exception as e:
         logger.error(f"Failed to load Multiplayer cog: {e}")
         raise e

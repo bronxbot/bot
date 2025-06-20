@@ -1,14 +1,14 @@
 # Chance Games Module
 # Contains pure chance gambling games like slots, coinflip, double or nothing
 
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from cogs.logging.stats_logger import StatsLogger
 from utils.db import AsyncDatabase
 db = AsyncDatabase.get_instance()
 from utils.safe_reply import safe_reply
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
-import discord
+import nextcord
 import random
 import asyncio
 import functools
@@ -114,7 +114,7 @@ class ChanceGames(commands.Cog):
                 
             # Validate choice
             if not choice:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🪙 Coin Flip",
                     description=f"Bet: **{parsed_bet:,}** {self.currency}\n\n"
                                f"Choose heads or tails:\n"
@@ -154,7 +154,7 @@ class ChanceGames(commands.Cog):
             self.stats_logger.log_command_usage("coinflip")
             
             # Send result
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"🪙 {'You win!' if win else 'You lose!'}",
                 description=f"Your choice: **{choice.title()}**\n"
                           f"Result: **{result.title()}**\n\n"
@@ -256,7 +256,7 @@ class ChanceGames(commands.Cog):
             # Create slot display
             slot_display = " | ".join(reels)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎰 Slot Machine",
                 description=f"**{slot_display}**\n\n"
                           f"**{outcome}**\n"
@@ -322,7 +322,7 @@ class ChanceGames(commands.Cog):
                     return await ctx.reply(f"❌ You don't have '{item_name}' in your inventory!")
                     
             # Create confirmation view
-            view = discord.ui.View(timeout=30.0)
+            view = nextcord.ui.View(timeout=30.0)
             
             async def confirm_callback(interaction):
                 if interaction.user.id != ctx.author.id:
@@ -372,7 +372,7 @@ class ChanceGames(commands.Cog):
                 # Create result embed
                 item_names = ", ".join([item.get("name", "Unknown") for item in items_to_bet])
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🎲 Double or Nothing",
                     description=f"You bet: **{item_names}**\n\n"
                             f"{outcome}",
@@ -389,18 +389,18 @@ class ChanceGames(commands.Cog):
                 await interaction.response.edit_message(content="❌ Game cancelled.", embed=None, view=None)
                 self.active_games.remove(ctx.author.id)
                 
-            confirm_button = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.green)
+            confirm_button = nextcord.ui.Button(label="Confirm", style=nextcord.ButtonStyle.green)
             confirm_button.callback = confirm_callback
             view.add_item(confirm_button)
             
-            cancel_button = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.red)
+            cancel_button = nextcord.ui.Button(label="Cancel", style=nextcord.ButtonStyle.red)
             cancel_button.callback = cancel_callback
             view.add_item(cancel_button)
             
             # Create confirmation message
             item_names = ", ".join([item.get("name", "Unknown") for item in items_to_bet])
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎲 Double or Nothing",
                 description=f"You're about to bet:\n**{item_names}**\n\n"
                         f"50% chance to double them, 50% chance to lose them all!",
@@ -417,4 +417,4 @@ class ChanceGames(commands.Cog):
             await ctx.reply("❌ An error occurred while setting up the game.")
 
 async def setup(bot):
-    await bot.add_cog(ChanceGames(bot))
+    bot.add_cog(ChanceGames(bot))

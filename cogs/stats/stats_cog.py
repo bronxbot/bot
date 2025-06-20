@@ -3,10 +3,10 @@ Stats Cog
 Main cog for statistics and monitoring management.
 """
 
-import discord
+import nextcord
 import logging
 from datetime import datetime
-from discord.ext import commands
+from nextcord.ext import commands
 from typing import Dict, List, Optional
 
 from utils.db import db
@@ -130,4 +130,4 @@ class Stats(commands.Cog, ErrorHandler):
         await self.handle_error(ctx, error, "stats")
 
 async def setup(bot):
-    await bot.add_cog(Stats(bot))
+    bot.add_cog(Stats(bot))

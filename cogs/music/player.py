@@ -3,8 +3,8 @@ Music Player module for BronxBot
 Handles audio playback, streaming, and advanced player features
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import asyncio
 import yt_dlp
 import logging
@@ -100,7 +100,7 @@ class MusicPlayer(commands.Cog):
         }
         
         self.ytdl = yt_dlp.YoutubeDL(self.ytdl_options)
-        self.current_players: Dict[int, discord.PCMVolumeTransformer] = {}  # guild_id -> current player
+        self.current_players: Dict[int, nextcord.PCMVolumeTransformer] = {}  # guild_id -> current player
         
     async def search_youtube(self, query: str, max_results: int = 5) -> List[YouTubeSource]:
         """Search YouTube and return a list of sources with improved error handling"""
@@ -148,7 +148,7 @@ class MusicPlayer(commands.Cog):
             logging.error(f"Error searching YouTube: {e}")
             return []
     
-    async def create_audio_source(self, source: YouTubeSource, volume: float = 0.5) -> discord.PCMVolumeTransformer:
+    async def create_audio_source(self, source: YouTubeSource, volume: float = 0.5) -> nextcord.PCMVolumeTransformer:
         """Create a Discord audio source from a YouTubeSource with retry logic"""
         try:
             loop = asyncio.get_event_loop()
@@ -187,8 +187,8 @@ class MusicPlayer(commands.Cog):
             
             # Create audio source with improved error handling
             try:
-                audio_source = discord.FFmpegPCMAudio(stream_url, **self.ffmpeg_options)
-                volume_source = discord.PCMVolumeTransformer(audio_source, volume=volume)
+                audio_source = nextcord.FFmpegPCMAudio(stream_url, **self.ffmpeg_options)
+                volume_source = nextcord.PCMVolumeTransformer(audio_source, volume=volume)
                 
                 # Attach metadata to the source
                 volume_source.title = source.title
@@ -206,8 +206,8 @@ class MusicPlayer(commands.Cog):
                     'before_options': '-nostdin',
                     'options': '-vn'
                 }
-                audio_source = discord.FFmpegPCMAudio(stream_url, **fallback_options)
-                volume_source = discord.PCMVolumeTransformer(audio_source, volume=volume)
+                audio_source = nextcord.FFmpegPCMAudio(stream_url, **fallback_options)
+                volume_source = nextcord.PCMVolumeTransformer(audio_source, volume=volume)
                 
                 # Attach metadata
                 volume_source.title = source.title
@@ -222,7 +222,7 @@ class MusicPlayer(commands.Cog):
             logging.error(f"Error creating audio source: {e}")
             raise Exception(f"Failed to create audio source: {str(e)}")
 
-    def play_in_guild(self, guild_id: int, source: discord.PCMVolumeTransformer, 
+    def play_in_guild(self, guild_id: int, source: nextcord.PCMVolumeTransformer, 
                      after_callback=None):
         """Play audio in a specific guild"""
         guild = self.bot.get_guild(guild_id)
@@ -253,16 +253,16 @@ class MusicPlayer(commands.Cog):
             logging.error(f"Error playing audio in guild {guild_id}: {e}")
             return False
 
-    def get_current_player(self, guild_id: int) -> Optional[discord.PCMVolumeTransformer]:
+    def get_current_player(self, guild_id: int) -> Optional[nextcord.PCMVolumeTransformer]:
         """Get the current player for a guild"""
         return self.current_players.get(guild_id)
 
     @commands.command(name='search')
     async def search_music(self, ctx, *, query: str):
         """Search for music and display results"""
-        loading_embed = discord.Embed(
+        loading_embed = nextcord.Embed(
             description=f"🔍 Searching for: **{query}**",
-            color=discord.Color.yellow()
+            color=nextcord.Color.yellow()
         )
         message = await ctx.send(embed=loading_embed)
         
@@ -270,17 +270,17 @@ class MusicPlayer(commands.Cog):
             results = await self.search_youtube(query, max_results=5)
             
             if not results:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ No results found for your search.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await message.edit(embed=embed)
                 return
             
             # Create search results embed
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"🔍 Search Results for: {query}",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             
             description = ""
@@ -309,9 +309,9 @@ class MusicPlayer(commands.Cog):
             
         except Exception as e:
             logging.error(f"Error in search command: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"❌ An error occurred while searching: {str(e)}",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await message.edit(embed=embed)
 
@@ -319,40 +319,40 @@ class MusicPlayer(commands.Cog):
     async def set_volume(self, ctx, volume: int):
         """Set the volume of the current player (0-100)"""
         if not ctx.voice_client or not ctx.voice_client.is_playing():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Nothing is currently playing!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         if volume < 0 or volume > 100:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Volume must be between 0 and 100!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         # Check if user has permission to change volume
         if not ctx.author.guild_permissions.manage_messages and volume > 50:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need 'Manage Messages' permission to set volume above 50%!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         # Set volume
-        if isinstance(ctx.voice_client.source, discord.PCMVolumeTransformer):
+        if isinstance(ctx.voice_client.source, nextcord.PCMVolumeTransformer):
             ctx.voice_client.source.volume = volume / 100.0
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"🔊 Volume set to **{volume}%**",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
             await ctx.send(embed=embed)
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Cannot adjust volume for this audio source!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
 
@@ -360,17 +360,17 @@ class MusicPlayer(commands.Cog):
     async def play_info(self, ctx):
         """Show detailed information about the currently playing song"""
         if not ctx.voice_client or not ctx.voice_client.is_playing():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Nothing is currently playing!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         source = ctx.voice_client.source
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎵 Currently Playing",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         if hasattr(source, 'title'):
@@ -418,31 +418,31 @@ class MusicPlayer(commands.Cog):
                 if hasattr(source, 'title'):
                     song_title = source.title
                 else:
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         description="❌ Please specify a song title or play a song first!",
-                        color=discord.Color.red()
+                        color=nextcord.Color.red()
                     )
                     return await ctx.send(embed=embed)
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Please specify a song title or play a song first!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.send(embed=embed)
         
-        loading_embed = discord.Embed(
+        loading_embed = nextcord.Embed(
             description=f"🔍 Searching for lyrics: **{song_title}**",
-            color=discord.Color.yellow()
+            color=nextcord.Color.yellow()
         )
         message = await ctx.send(embed=loading_embed)
         
         try:
             # This is a placeholder - you would need to implement actual lyrics fetching
             # from a service like Genius API or similar
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎵 Lyrics",
                 description="Lyrics functionality is not yet implemented. This would require integration with a lyrics API service.",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             embed.add_field(name="Song", value=song_title, inline=False)
             embed.set_footer(text="Feature coming soon!")
@@ -451,11 +451,11 @@ class MusicPlayer(commands.Cog):
             
         except Exception as e:
             logging.error(f"Error fetching lyrics: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"❌ An error occurred while fetching lyrics: {str(e)}",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await message.edit(embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(MusicPlayer(bot))
+    bot.add_cog(MusicPlayer(bot))

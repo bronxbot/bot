@@ -3,8 +3,8 @@ Permission Manager
 Handles permission management for bot settings.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import List, Dict
 
 from utils.db import AsyncDatabase
@@ -22,7 +22,7 @@ class PermissionManager:
 
     async def show_permissions(self, ctx):
         """Show permission management interface"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="👑 Permission Management",
             description=(
                 "Configure who can manage bot settings\n\n"
@@ -45,7 +45,7 @@ class PermissionManager:
         manage_roles = perms.get('manage_roles', [])
         manage_users = perms.get('manage_users', [])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="👑 Settings Management Permissions",
             color=0x3498db
         )
@@ -97,7 +97,7 @@ class PermissionManager:
         embed.set_footer(text="Note: Server admins and owners always have access")
         await ctx.send(embed=embed)
 
-    async def add_role_permission(self, ctx, role: discord.Role):
+    async def add_role_permission(self, ctx, role: nextcord.Role):
         """Add a role to settings management permissions"""
         settings = await db.get_guild_settings(ctx.guild.id)
         perms = settings.get('general_permissions', {})
@@ -111,7 +111,7 @@ class PermissionManager:
         perms['manage_roles'] = manage_roles
         await db.update_guild_settings(ctx.guild.id, {'general_permissions': perms})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Permission Added",
             description=f"Role {role.mention} can now manage bot settings",
             color=0x2ecc71
@@ -119,7 +119,7 @@ class PermissionManager:
         await ctx.send(embed=embed)
         logger.info(f"Role {role.id} ({role.name}) granted settings permissions in guild {ctx.guild.id}")
 
-    async def add_user_permission(self, ctx, user: discord.Member):
+    async def add_user_permission(self, ctx, user: nextcord.Member):
         """Add a user to settings management permissions"""
         settings = await db.get_guild_settings(ctx.guild.id)
         perms = settings.get('general_permissions', {})
@@ -133,7 +133,7 @@ class PermissionManager:
         perms['manage_users'] = manage_users
         await db.update_guild_settings(ctx.guild.id, {'general_permissions': perms})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Permission Added",
             description=f"User {user.mention} can now manage bot settings",
             color=0x2ecc71
@@ -141,7 +141,7 @@ class PermissionManager:
         await ctx.send(embed=embed)
         logger.info(f"User {user.id} ({user.name}) granted settings permissions in guild {ctx.guild.id}")
 
-    async def remove_role_permission(self, ctx, role: discord.Role):
+    async def remove_role_permission(self, ctx, role: nextcord.Role):
         """Remove a role from settings management permissions"""
         settings = await db.get_guild_settings(ctx.guild.id)
         perms = settings.get('general_permissions', {})
@@ -155,7 +155,7 @@ class PermissionManager:
         perms['manage_roles'] = manage_roles
         await db.update_guild_settings(ctx.guild.id, {'general_permissions': perms})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Permission Removed",
             description=f"Role {role.mention} can no longer manage bot settings",
             color=0x2ecc71
@@ -163,7 +163,7 @@ class PermissionManager:
         await ctx.send(embed=embed)
         logger.info(f"Role {role.id} ({role.name}) settings permissions revoked in guild {ctx.guild.id}")
 
-    async def remove_user_permission(self, ctx, user: discord.Member):
+    async def remove_user_permission(self, ctx, user: nextcord.Member):
         """Remove a user from settings management permissions"""
         settings = await db.get_guild_settings(ctx.guild.id)
         perms = settings.get('general_permissions', {})
@@ -177,7 +177,7 @@ class PermissionManager:
         perms['manage_users'] = manage_users
         await db.update_guild_settings(ctx.guild.id, {'general_permissions': perms})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Permission Removed",
             description=f"User {user.mention} can no longer manage bot settings",
             color=0x2ecc71

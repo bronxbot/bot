@@ -21,4 +21,4 @@ from .stats.command_tracker import CommandTracker
 
 async def setup(bot):
     """Setup function for the cog"""
-    await bot.add_cog(Stats(bot))
+    bot.add_cog(Stats(bot))

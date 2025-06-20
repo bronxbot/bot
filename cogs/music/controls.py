@@ -3,8 +3,8 @@ Music Controls module for BronxBot
 Handles advanced music controls, loops, autoplay, and user interaction
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import asyncio
 from typing import Dict, Optional
 import random
@@ -16,7 +16,7 @@ class LoopMode:
     SONG = 1
     QUEUE = 2
 
-class MusicControlPanel(discord.ui.View):
+class MusicControlPanel(nextcord.ui.View):
     """Interactive music control panel"""
     
     def __init__(self, bot, guild_id: int):
@@ -39,10 +39,10 @@ class MusicControlPanel(discord.ui.View):
         # Update pause/resume button
         if voice_client.is_paused():
             self.pause_resume.label = "▶️ Resume"
-            self.pause_resume.style = discord.ButtonStyle.success
+            self.pause_resume.style = nextcord.ButtonStyle.success
         else:
             self.pause_resume.label = "⏸️ Pause"
-            self.pause_resume.style = discord.ButtonStyle.secondary
+            self.pause_resume.style = nextcord.ButtonStyle.secondary
         
         # Update play/stop states
         is_playing = voice_client.is_playing() or voice_client.is_paused()
@@ -57,8 +57,8 @@ class MusicControlPanel(discord.ui.View):
             # Skip is only useful if there's something in queue or if we can stop current song
             self.skip.disabled = not is_playing
     
-    @discord.ui.button(label="⏸️ Pause", style=discord.ButtonStyle.secondary)
-    async def pause_resume(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="⏸️ Pause", style=nextcord.ButtonStyle.secondary)
+    async def pause_resume(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         guild = self.bot.get_guild(self.guild_id)
         if not guild or not guild.voice_client:
             await interaction.response.send_message("❌ Not connected to voice!", ephemeral=True)
@@ -78,8 +78,8 @@ class MusicControlPanel(discord.ui.View):
         self.update_buttons()
         await interaction.edit_original_response(view=self)
     
-    @discord.ui.button(label="⏭️ Skip", style=discord.ButtonStyle.primary)
-    async def skip(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="⏭️ Skip", style=nextcord.ButtonStyle.primary)
+    async def skip(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         guild = self.bot.get_guild(self.guild_id)
         if not guild or not guild.voice_client:
             await interaction.response.send_message("❌ Not connected to voice!", ephemeral=True)
@@ -95,8 +95,8 @@ class MusicControlPanel(discord.ui.View):
         self.update_buttons()
         await interaction.edit_original_response(view=self)
     
-    @discord.ui.button(label="⏹️ Stop", style=discord.ButtonStyle.danger)
-    async def stop(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="⏹️ Stop", style=nextcord.ButtonStyle.danger)
+    async def stop(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         # Check permissions
         if not interaction.user.guild_permissions.manage_messages:
             await interaction.response.send_message("❌ You need 'Manage Messages' permission to stop music!", ephemeral=True)
@@ -121,8 +121,8 @@ class MusicControlPanel(discord.ui.View):
         self.update_buttons()
         await interaction.edit_original_response(view=self)
     
-    @discord.ui.button(label="📋 Queue", style=discord.ButtonStyle.secondary)
-    async def show_queue(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="📋 Queue", style=nextcord.ButtonStyle.secondary)
+    async def show_queue(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         queue_cog = self.bot.get_cog('MusicQueue')
         if not queue_cog:
             await interaction.response.send_message("❌ Queue system not available!", ephemeral=True)
@@ -133,8 +133,8 @@ class MusicControlPanel(discord.ui.View):
         embed = view.get_queue_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
     
-    @discord.ui.button(label="🔀 Shuffle", style=discord.ButtonStyle.secondary)
-    async def shuffle(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="🔀 Shuffle", style=nextcord.ButtonStyle.secondary)
+    async def shuffle(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         # Check permissions
         if not interaction.user.guild_permissions.manage_messages:
             await interaction.response.send_message("❌ You need 'Manage Messages' permission to shuffle!", ephemeral=True)
@@ -189,16 +189,16 @@ class MusicControls(commands.Cog):
     async def show_controls(self, ctx):
         """Show interactive music control panel"""
         if not ctx.voice_client:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ I'm not connected to any voice channel!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎵 Music Control Panel",
             description="Use the buttons below to control music playback",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         # Add current status
@@ -234,35 +234,35 @@ class MusicControls(commands.Cog):
         if not mode:
             current_mode = self.get_loop_mode(ctx.guild.id)
             mode_text = ["off", "song", "queue"][current_mode]
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"🔁 Current loop mode: **{mode_text}**\n\nUse `.loop <off/song/queue>` to change",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             return await ctx.send(embed=embed)
         
         mode = mode.lower()
         if mode in ['off', 'none', '0']:
             self.set_loop_mode(ctx.guild.id, LoopMode.NONE)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="🔁 Loop mode disabled",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
         elif mode in ['song', 'track', '1']:
             self.set_loop_mode(ctx.guild.id, LoopMode.SONG)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="🔂 Loop mode: Current song",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
         elif mode in ['queue', 'all', '2']:
             self.set_loop_mode(ctx.guild.id, LoopMode.QUEUE)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="🔁 Loop mode: Entire queue",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Invalid loop mode! Use: `off`, `song`, or `queue`",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
         
         await ctx.send(embed=embed)
@@ -273,29 +273,29 @@ class MusicControls(commands.Cog):
         if not enabled:
             current = self.is_autoplay_enabled(ctx.guild.id)
             status = "enabled" if current else "disabled"
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"🤖 Autoplay is currently **{status}**\n\nUse `.autoplay <on/off>` to change",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             return await ctx.send(embed=embed)
         
         enabled = enabled.lower()
         if enabled in ['on', 'true', 'yes', 'enable', '1']:
             self.set_autoplay(ctx.guild.id, True)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="🤖 Autoplay enabled - I'll automatically play related songs when the queue is empty",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
         elif enabled in ['off', 'false', 'no', 'disable', '0']:
             self.set_autoplay(ctx.guild.id, False)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="🤖 Autoplay disabled",
-                color=discord.Color.orange()
+                color=nextcord.Color.orange()
             )
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Invalid option! Use: `on` or `off`",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
         
         await ctx.send(embed=embed)
@@ -304,18 +304,18 @@ class MusicControls(commands.Cog):
     async def repeat_command(self, ctx):
         """Repeat the current song (add it back to the queue)"""
         if not ctx.voice_client or not ctx.voice_client.is_playing():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Nothing is currently playing!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         # Get current song info
         source = ctx.voice_client.source
         if not hasattr(source, 'title'):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Cannot repeat this song!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -324,9 +324,9 @@ class MusicControls(commands.Cog):
         player_cog = self.bot.get_cog('MusicPlayer')
         
         if not queue_cog or not player_cog:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Queue or player system not available!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -336,20 +336,20 @@ class MusicControls(commands.Cog):
                 # This is a simplified version - you might need to recreate the source properly
                 queue_cog.add_to_queue(ctx.guild.id, source, ctx.author)
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"🔂 Added **{source.title}** back to the queue",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Cannot repeat this song - no URL available!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
         except Exception as e:
             logging.error(f"Error repeating song: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Failed to add song to queue!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
         
         await ctx.send(embed=embed)
@@ -359,26 +359,26 @@ class MusicControls(commands.Cog):
         """Skip to a specific position in the queue"""
         # Check permissions
         if not ctx.author.guild_permissions.manage_messages:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need 'Manage Messages' permission to skip to a specific position!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         queue_cog = self.bot.get_cog('MusicQueue')
         if not queue_cog:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Queue system not available!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         queue = queue_cog.get_queue(ctx.guild.id)
         
         if position < 1 or position > len(queue):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"❌ Invalid position! Queue has {len(queue)} songs.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -390,9 +390,9 @@ class MusicControls(commands.Cog):
         if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.stop()
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description=f"⏭️ Skipped to position #{position} in queue",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         await ctx.send(embed=embed)
 
@@ -400,18 +400,18 @@ class MusicControls(commands.Cog):
     async def replay_current(self, ctx):
         """Replay the current song from the beginning (alias: restart removed for bot restart priority)"""
         if not ctx.voice_client or not ctx.voice_client.is_playing():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Nothing is currently playing!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         # Get current song
         source = ctx.voice_client.source
         if not hasattr(source, 'url'):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Cannot replay this song!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -426,9 +426,9 @@ class MusicControls(commands.Cog):
                 queue_cog.queues[ctx.guild.id] = []
             queue_cog.queues[ctx.guild.id].appendleft((source, ctx.author))
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description=f"🔄 Replaying **{getattr(source, 'title', 'current song')}**",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         await ctx.send(embed=embed)
 
@@ -439,4 +439,4 @@ class MusicControls(commands.Cog):
         await self.replay_current(ctx)
 
 async def setup(bot):
-    await bot.add_cog(MusicControls(bot))
+    bot.add_cog(MusicControls(bot))

@@ -15,4 +15,4 @@ __all__ = ['GeneralSettings']
 # Async setup function for the cog
 async def setup(bot):
     """Set up the General Settings cog"""
-    await bot.add_cog(GeneralSettings(bot))
+    bot.add_cog(GeneralSettings(bot))

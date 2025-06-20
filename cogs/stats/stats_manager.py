@@ -3,11 +3,11 @@ Stats Manager
 Handles core statistics collection, storage, and management.
 """
 
-import discord
+import nextcord
 import time
 import json
 from datetime import datetime, timedelta
-from discord.utils import utcnow
+from nextcord.utils import utcnow
 from typing import Dict, List, Optional
 
 from utils.db import db
@@ -236,7 +236,7 @@ class StatsManager:
     async def show_stats_status(self, ctx):
         """Show current statistics status"""
         try:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📊 Statistics Status",
                 color=COLORS['stats']
             )
@@ -286,7 +286,7 @@ class StatsManager:
         """Reset all statistics with confirmation"""
         try:
             # Confirmation embed
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⚠️ Reset Statistics",
                 description="This will permanently reset ALL statistics. Are you sure?",
                 color=COLORS['warning']
@@ -307,7 +307,7 @@ class StatsManager:
                     self.stats = DEFAULT_STATS.copy()
                     await self.save_stats_to_mongodb()
                     
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="✅ Statistics Reset",
                         description="All statistics have been reset successfully.",
                         color=COLORS['success']
@@ -315,7 +315,7 @@ class StatsManager:
                     await message.edit(embed=embed)
                     logger.info(f"Statistics reset by {ctx.author}")
                 else:
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="❌ Reset Cancelled",
                         description="Statistics reset has been cancelled.",
                         color=COLORS['error']
@@ -323,7 +323,7 @@ class StatsManager:
                     await message.edit(embed=embed)
                     
             except Exception:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="⏰ Reset Timed Out",
                     description="Statistics reset has been cancelled due to timeout.",
                     color=COLORS['error']

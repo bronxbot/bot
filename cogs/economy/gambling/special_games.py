@@ -1,11 +1,11 @@
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from cogs.logging.stats_logger import StatsLogger
 from utils.db import AsyncDatabase
 db = AsyncDatabase.get_instance()
 from utils.safe_reply import safe_reply
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
-import discord
+import nextcord
 import random
 import asyncio
 import time
@@ -200,7 +200,7 @@ class SpecialGames(commands.Cog):
             embed = self._crash_embed(ctx.author.name, multiplier, bet, current_balance, False)
             try:
                 await view.message.edit(embed=embed)
-            except discord.NotFound:
+            except nextcord.NotFound:
                 self.active_games.remove(ctx.author.id)
                 return
                 
@@ -208,7 +208,7 @@ class SpecialGames(commands.Cog):
 
     def _crash_view(self, user_id: int, bet: int, current_balance: int):
         """Create the crash game view with cashout button"""
-        view = discord.ui.View(timeout=30.0)
+        view = nextcord.ui.View(timeout=30.0)
         view.cashed_out = False
         view.cashout_multiplier = 1.0
         view.current_multiplier = 1.0  # Track current multiplier
@@ -221,7 +221,7 @@ class SpecialGames(commands.Cog):
             view.cashout_multiplier = view.current_multiplier  # Use the tracked multiplier
             await interaction.response.defer()
         
-        cashout_button = discord.ui.Button(label="Cash Out", style=discord.ButtonStyle.green)
+        cashout_button = nextcord.ui.Button(label="Cash Out", style=nextcord.ButtonStyle.green)
         cashout_button.callback = cashout_callback
         view.add_item(cashout_button)
         
@@ -232,7 +232,7 @@ class SpecialGames(commands.Cog):
         color = 0x2ecc71 if not game_over else 0xe74c3c
         title = f"{author.capitalize()}'s 🚀 Crash Game" if not game_over else "💥 Game Over"
         
-        embed = discord.Embed(title=title, color=color)
+        embed = nextcord.Embed(title=title, color=color)
         
         if status:
             embed.description = f"**{status}**"
@@ -276,7 +276,7 @@ class SpecialGames(commands.Cog):
         - green (0): 15:1 payout
         """
         if not bet or not choice:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎰 Roulette",
                 description="**Betting Options:**\n"
                           "• Numbers `0-36` - **15:1 payout**\n"
@@ -358,7 +358,7 @@ class SpecialGames(commands.Cog):
                 self.stats_logger.log_economy_transaction(ctx.author.id, "roulette", parsed_bet, False)
             
             # Send initial spinning message
-            spinning_embed = discord.Embed(
+            spinning_embed = nextcord.Embed(
                 title="🎰 Roulette (REBALANCED)",
                 description="🎲 **The wheel is spinning...**",
                 color=0x9b59b6
@@ -369,7 +369,7 @@ class SpecialGames(commands.Cog):
             await asyncio.sleep(2)
             
             # Show result
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"🎰 {'You Win!' if win else 'You Lose!'}",
                 description=f"**Winning Number:** "
                         f"**{winning_number} {winning_color.title()}**\n\n"
@@ -408,7 +408,7 @@ class SpecialGames(commands.Cog):
     @commands.command(aliases=['bomb_activate'])
     @commands.cooldown(1, 300, commands.BucketType.guild)
     @requires_tos()
-    async def bomb(self, ctx, channel: discord.TextChannel = None, amount: int = 1000):
+    async def bomb(self, ctx, channel: nextcord.TextChannel = None, amount: int = 1000):
         """Start a money bomb in a channel
         
         Usage: `.bomb [channel] [amount]`
@@ -422,7 +422,7 @@ class SpecialGames(commands.Cog):
             
         # Check permissions
         if not channel.permissions_for(ctx.guild.me).send_messages:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 color=0xFF0000,
                 description=f"{ctx.author.mention}, I don't have permission to send messages in {channel.mention}!"
             )
@@ -433,7 +433,7 @@ class SpecialGames(commands.Cog):
         wallet = await db.get_wallet_balance(ctx.author.id, ctx.guild.id)
         
         if wallet < amount:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 color=0xFF0000,
                 description=f"💸 {ctx.author.mention} You need **{amount:,}** {self.currency} (You have: {wallet:,})"
             )
@@ -448,7 +448,7 @@ class SpecialGames(commands.Cog):
         await db.update_wallet(ctx.author.id, -amount, ctx.guild.id)
         
         # Bomb activation embed
-        bomb_embed = discord.Embed(
+        bomb_embed = nextcord.Embed(
             title="💣 **DYNAMIC MONEY BOMB** 💣",
             color=0xFF5733,
             description=(
@@ -526,7 +526,7 @@ class SpecialGames(commands.Cog):
         await db.update_bank(ctx.author.id, payout, ctx.guild.id)
         
         # Results embed
-        result_embed = discord.Embed(
+        result_embed = nextcord.Embed(
             title=f"💥 **BOMB COMPLETED** 💥",
             color=0xFFA500,
             description=(
@@ -558,4 +558,4 @@ class SpecialGames(commands.Cog):
         await channel.send(embed=result_embed)
 
 async def setup(bot):
-    await bot.add_cog(SpecialGames(bot))
+    bot.add_cog(SpecialGames(bot))

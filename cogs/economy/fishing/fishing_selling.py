@@ -1,12 +1,12 @@
 # Fishing Selling and Trading Module
 # Handles fish selling with various filters and interactive selection
 
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from utils.db import db
 from utils.safe_reply import safe_reply
 from utils.amount_parser import parse_amount
-import discord
+import nextcord
 from .fishing_ui import InteractiveFishSeller
 
 class FishingSelling(commands.Cog, name="FishingSelling"):
@@ -127,7 +127,7 @@ class FishingSelling(commands.Cog, name="FishingSelling"):
             rarity_config = self._get_rarity_config()
             config = rarity_config.get(fish.get("type", "common"), {"color": 0x2b2d31, "emoji": "🐟"})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"{config['emoji']} Fish Sold!",
                 description=f"Sold **{fish['name']}** for **{fish['value']:,}** {self.currency}",
                 color=config['color']
@@ -148,7 +148,7 @@ class FishingSelling(commands.Cog, name="FishingSelling"):
         
         if await db.clear_fish(ctx.author.id):
             await db.add_currency(ctx.author.id, total_value)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🐟 All Fish Sold!",
                 description=f"Sold **{fish_count:,}** fish for **{total_value:,}** {self.currency}",
                 color=0x00ff00
@@ -208,7 +208,7 @@ class FishingSelling(commands.Cog, name="FishingSelling"):
             rarity_config = self._get_rarity_config()
             config = rarity_config.get(rarity, {"color": 0x00ff00, "emoji": "🐟"})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"{config['emoji']} {rarity.title()} Fish Sold!",
                 description=f"Sold **{success_count:,}** {rarity} fish for **{earned:,}** {self.currency}",
                 color=config['color']
@@ -264,7 +264,7 @@ class FishingSelling(commands.Cog, name="FishingSelling"):
             earned = sum(fish.get("value", 0) for fish in matching_fish[:success_count])
             await db.add_currency(ctx.author.id, earned)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="💰 Fish Sold by Value!",
                 description=f"Sold **{success_count:,}** fish (value {operator} {value_threshold:,}) for **{earned:,}** {self.currency}",
                 color=0x00ff00
@@ -299,4 +299,4 @@ class FishingSelling(commands.Cog, name="FishingSelling"):
             await ctx.reply("❌ Failed to sell any fish!")
 
 async def setup(bot):
-    await bot.add_cog(FishingSelling(bot))
+    bot.add_cog(FishingSelling(bot))

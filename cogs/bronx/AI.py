@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import aiohttp
 import json
 import asyncio
@@ -294,10 +294,10 @@ When users ask about commands, direct them to use `.help` for the most up-to-dat
                                                     if len(preview_response) > self.max_message_length:
                                                         preview_response = preview_response[:self.max_message_length-3] + "..."
                                                     
-                                                    embed = discord.Embed(
+                                                    embed = nextcord.Embed(
                                                         title="🤖 BronxBot AI (Generating...)",
                                                         description=preview_response + (" ▌" if not show_thinking else " 🧠▌"),  # Different cursor for thinking mode
-                                                        color=discord.Color.orange(),
+                                                        color=nextcord.Color.orange(),
                                                         timestamp=datetime.now()
                                                     )
                                                     embed.set_footer(
@@ -307,7 +307,7 @@ When users ask about commands, direct them to use `.help` for the most up-to-dat
                                                     
                                                     await message.edit(embed=embed)
                                                     last_edit_time = current_time
-                                                except discord.HTTPException:
+                                                except nextcord.HTTPException:
                                                     # Handle rate limit or other Discord API errors
                                                     pass
                                         
@@ -503,48 +503,48 @@ When users ask about commands, direct them to use `.help` for the most up-to-dat
         
         # Validate prompt after flag removal
         if not prompt.strip():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Empty Message",
                 description="Please provide a message after the flag.\nExample: `.ai --thinking explain quantum physics`",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
             return
         # Check if Ollama is running
         if not await self.check_ollama_status():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ AI Unavailable",
                 description="The AI service is currently offline. Please try again later.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
             return
 
         # Check if model is available
         if not await self.check_model_availability():
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Model Unavailable",
                 description=f"The AI model `{self.model_name}` is not available. Please contact an administrator.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
             return
 
         # Check input length
         if len(prompt) > 1000:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Message Too Long",
                 description="Please keep your message under 1000 characters.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
             return
 
         # Send initial "thinking" message
-        thinking_embed = discord.Embed(
+        thinking_embed = nextcord.Embed(
             title="🤖 BronxBot AI",
             description="🔄 Connecting to AI model..." + (" 🧠" if show_thinking else ""),
-            color=discord.Color.yellow(),
+            color=nextcord.Color.yellow(),
             timestamp=datetime.now()
         )
         thinking_embed.set_footer(
@@ -560,10 +560,10 @@ When users ask about commands, direct them to use `.help` for the most up-to-dat
             
             if response:
                 # Create final embed for response
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🤖 BronxBot AI" + (" 🧠" if show_thinking else ""),
                     description=response,
-                    color=discord.Color.blue(),
+                    color=nextcord.Color.blue(),
                     timestamp=datetime.now()
                 )
                 embed.set_footer(
@@ -578,19 +578,19 @@ When users ask about commands, direct them to use `.help` for the most up-to-dat
                 logger.info(f"AI request from {ctx.author} ({ctx.author.id}) in {ctx.guild}: {prompt[:100]}... (thinking={'on' if show_thinking else 'off'})")
                 
             else:
-                error_embed = discord.Embed(
+                error_embed = nextcord.Embed(
                     title="❌ AI Error",
                     description="I couldn't generate a response right now. Please try again later.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await message.edit(embed=error_embed)
                 
         except Exception as e:
             logger.error(f"Error in AI command: {e}")
-            error_embed = discord.Embed(
+            error_embed = nextcord.Embed(
                 title="❌ Unexpected Error",
                 description="An unexpected error occurred. Please try again later.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await message.edit(embed=error_embed)
 
@@ -608,10 +608,10 @@ When users ask about commands, direct them to use `.help` for the most up-to-dat
         if user_id in self.active_sessions:
             del self.active_sessions[user_id]
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🗑️ Conversation Cleared",
             description="Your conversation history with the AI has been cleared.",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         await ctx.send(embed=embed)
         
@@ -628,10 +628,10 @@ When users ask about commands, direct them to use `.help` for the most up-to-dat
         ollama_status = await self.check_ollama_status()
         model_status = await self.check_model_availability() if ollama_status else False
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🤖 AI Service Status",
             timestamp=datetime.now(),
-            color=discord.Color.green() if ollama_status and model_status else discord.Color.red()
+            color=nextcord.Color.green() if ollama_status and model_status else nextcord.Color.red()
         )
         
         embed.add_field(
@@ -714,9 +714,9 @@ Another hidden block."""
             for i, scenario_text in enumerate(test_scenarios):
                 filtered = self.filter_ai_thinking(scenario_text, show_thinking=False)
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title=f"🧪 AI Filter Test #{i+1}" + (" (User's Exact Case)" if i == 0 else ""),
-                    color=discord.Color.blue()
+                    color=nextcord.Color.blue()
                 )
                 
                 # Show character counts to help debug
@@ -745,9 +745,9 @@ Another hidden block."""
             # Test custom text
             filtered = self.filter_ai_thinking(test_text, show_thinking=False)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🧪 AI Filter Test (Custom)",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             
             embed.add_field(
@@ -779,9 +779,9 @@ Another hidden block."""
         # Get the current valid commands
         valid_commands = self.get_all_bot_commands()
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🧪 Command Validation Test",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         embed.add_field(
@@ -817,10 +817,10 @@ Another hidden block."""
     async def ai_chat_error(self, ctx, error):
         """Handle AI command errors"""
         if isinstance(error, commands.CommandOnCooldown):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⏰ Cooldown Active",
                 description=f"Please wait {error.retry_after:.1f} seconds before using the AI again.",
-                color=discord.Color.orange()
+                color=nextcord.Color.orange()
             )
             await ctx.send(embed=embed, delete_after=10)
         else:
@@ -834,5 +834,5 @@ Another hidden block."""
         self.user_cooldowns.clear()
 
 async def setup(bot):
-    await bot.add_cog(AI(bot))
+    bot.add_cog(AI(bot))
     logger.info("AI cog loaded successfully")

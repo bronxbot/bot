@@ -1,13 +1,13 @@
 # Fishing Inventory and Equipment Management Module
 # Handles fish inventory, rod/bait equipment, and gear management
 
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from utils.db import AsyncDatabase
 db = AsyncDatabase.get_instance()
 from utils.safe_reply import safe_reply
 from utils.weight_formatter import format_weight
-import discord
+import nextcord
 import math
 from .fishing_ui import FishInventoryPaginator, RodPaginator, BaitPaginator
 
@@ -105,7 +105,7 @@ class FishingInventory(commands.Cog, name="FishingInventory"):
                 total_fish = len(user_fish)
                 total_value = sum(fish.get("value", 0) for fish in user_fish) if user_fish else 0
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🎣 Fishing Overview",
                     description=f"**Total Fish:** {total_fish:,} | **Total Value:** {total_value:,} {self.currency}",
                     color=0x2b2d31
@@ -219,7 +219,7 @@ class FishingInventory(commands.Cog, name="FishingInventory"):
             end_idx = start_idx + items_per_page
             page_fish = user_fish[start_idx:end_idx]
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🐟 Fish Collection",
                 description=f"Your caught fish sorted by value",
                 color=0x2b2d31
@@ -289,7 +289,7 @@ class FishingInventory(commands.Cog, name="FishingInventory"):
                     break
             
             if not target_rod:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Rod Not Found",
                     description=f"Rod '{rod_name}' not found in your inventory!",
                     color=0xff0000
@@ -308,7 +308,7 @@ class FishingInventory(commands.Cog, name="FishingInventory"):
             
             # Equip the rod
             if await self.set_active_rod_manual(ctx.author.id, target_rod['_id']):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🎣 Rod Equipped",
                     description=f"You equipped **{target_rod['name']}**",
                     color=0x00ff00
@@ -382,7 +382,7 @@ class FishingInventory(commands.Cog, name="FishingInventory"):
                         break
             
             if not target_bait:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Bait Not Found",
                     description=f"Bait '{bait_name}' not found in your inventory!",
                     color=0xff0000
@@ -405,7 +405,7 @@ class FishingInventory(commands.Cog, name="FishingInventory"):
                 return await ctx.reply("❌ Invalid bait ID!")
                 
             if await db.set_active_bait(ctx.author.id, bait_id):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🪱 Bait Equipped",
                     description=f"You equipped **{target_bait['name']}**",
                     color=0x00ff00
@@ -424,4 +424,4 @@ class FishingInventory(commands.Cog, name="FishingInventory"):
             await ctx.reply("❌ An error occurred while equipping the bait!")
 
 async def setup(bot):
-    await bot.add_cog(FishingInventory(bot))
+    bot.add_cog(FishingInventory(bot))

@@ -1,11 +1,11 @@
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from cogs.logging.stats_logger import StatsLogger
 from utils.db import AsyncDatabase
 db = AsyncDatabase.get_instance()
 from utils.safe_reply import safe_reply
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
-import discord
+import nextcord
 import random
 import asyncio
 import functools
@@ -164,16 +164,16 @@ class Plinko(commands.Cog):
                 if (i + 1) % 3 == 0:
                     await asyncio.sleep(0.4)
                     
-            except discord.NotFound:
+            except nextcord.NotFound:
                 self.active_games.remove(ctx.author.id)
                 return
-            except discord.HTTPException as e:
+            except nextcord.HTTPException as e:
                 if e.status == 429:  # Rate limited
                     # Wait and try again
                     await asyncio.sleep(1.0)
                     try:
                         await message.edit(embed=frame_embed)
-                    except (discord.NotFound, discord.HTTPException):
+                    except (nextcord.NotFound, nextcord.HTTPException):
                         # If still failing, skip this frame
                         continue
                 else:
@@ -205,7 +205,7 @@ class Plinko(commands.Cog):
             color = 0xe74c3c  # Red
         
         # Create final embed
-        final_embed = discord.Embed(
+        final_embed = nextcord.Embed(
             title="🎯 Plinko Results",
             description=result_msg,
             color=color
@@ -266,7 +266,7 @@ class Plinko(commands.Cog):
     
     def _create_plinko_embed(self, author: str, bet: int, balance: int, status: str, ball_position: int, current_row: int):
         """Create the plinko game embed with current ball position"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🎯 {author.capitalize()}'s Plinko Game",
             description=status,
             color=0x9b59b6
@@ -382,4 +382,4 @@ class Plinko(commands.Cog):
         return " ".join(display)
 
 async def setup(bot):
-    await bot.add_cog(Plinko(bot))
+    bot.add_cog(Plinko(bot))

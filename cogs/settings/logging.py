@@ -1,8 +1,8 @@
 # Logging Settings
 # Handles server logging configuration, audit trails, and event monitoring
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import Optional, List, Dict, Union
 import json
 import asyncio
@@ -84,7 +84,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def logging_settings(self, ctx):
         """Logging settings management"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Logging Settings",
             description=(
                 "Configure server logging and audit trails\n\n"
@@ -106,7 +106,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         log_settings = settings.get('logging', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Logging Settings Overview",
             color=0x3498db
         )
@@ -163,7 +163,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def channel_settings(self, ctx):
         """Manage logging channels"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📺 Logging Channel Management",
             description="Configure which events get logged to which channels",
             color=0x3498db
@@ -192,13 +192,13 @@ class LoggingSettings(commands.Cog, ErrorHandler):
 
     @channel_settings.command(name='set')
     @commands.has_permissions(manage_guild=True)
-    async def set_log_channel(self, ctx, event: str, channel: discord.TextChannel):
+    async def set_log_channel(self, ctx, event: str, channel: nextcord.TextChannel):
         """Set logging channel for a specific event"""
         event = event.lower()
         
         if event not in LOGGING_EVENTS:
             # Show available events
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Invalid Event",
                 description=f"'{event}' is not a valid logging event.",
                 color=0xe74c3c
@@ -244,7 +244,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         
         await db.update_guild_settings(ctx.guild.id, {'logging': log_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Logging Channel Set",
             description=f"**{LOGGING_EVENTS[event]}** events will now be logged to {channel.mention}",
             color=0x2ecc71
@@ -271,7 +271,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         log_settings['channels'] = channels
         await db.update_guild_settings(ctx.guild.id, {'logging': log_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Logging Removed",
             description=f"**{LOGGING_EVENTS[event]}** events will no longer be logged",
             color=0x2ecc71
@@ -285,7 +285,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         channels = settings.get('logging', {}).get('channels', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📺 Current Logging Channels",
             color=0x3498db
         )
@@ -323,9 +323,9 @@ class LoggingSettings(commands.Cog, ErrorHandler):
 
     @channel_settings.command(name='bulk')
     @commands.has_permissions(manage_guild=True)
-    async def bulk_set_channel(self, ctx, channel: discord.TextChannel):
+    async def bulk_set_channel(self, ctx, channel: nextcord.TextChannel):
         """Set one channel for multiple events (Interactive)"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Bulk Channel Assignment",
             description=f"Select event categories to log in {channel.mention}",
             color=0x3498db
@@ -340,7 +340,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def list_events(self, ctx):
         """List all available logging events"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Available Logging Events",
             description="Complete list of events that can be logged",
             color=0x3498db
@@ -370,7 +370,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def audit_settings(self, ctx):
         """Configure audit trail settings"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔍 Audit Trail Configuration",
             description="Monitor users who make many changes in a short time",
             color=0xff9500
@@ -409,7 +409,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         
         if enabled is None:
             current_status = audit.get('enabled', False)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🔍 Audit Trail Status",
                 color=0xff9500
             )
@@ -441,7 +441,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         await db.update_guild_settings(ctx.guild.id, {'logging': log_settings})
         
         status = "enabled" if enabled else "disabled"
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"✅ Audit Trail {status.title()}",
             description=f"Audit trail monitoring has been {status}!",
             color=0x2ecc71 if enabled else 0x95a5a6
@@ -471,7 +471,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         log_settings['audit'] = audit
         await db.update_guild_settings(ctx.guild.id, {'logging': log_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Audit Threshold Updated",
             description=f"Audit alerts will trigger after {threshold} actions within the time window",
             color=0x2ecc71
@@ -494,7 +494,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         await db.update_guild_settings(ctx.guild.id, {'logging': log_settings})
         
         minutes = seconds // 60
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Audit Time Window Updated",
             description=f"Audit monitoring window set to {seconds} seconds ({minutes} minutes)",
             color=0x2ecc71
@@ -503,7 +503,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
 
     @audit_settings.command(name='channel')
     @commands.has_permissions(manage_guild=True)
-    async def set_audit_channel(self, ctx, channel: discord.TextChannel):
+    async def set_audit_channel(self, ctx, channel: nextcord.TextChannel):
         """Set the channel for audit trail alerts"""
         if not channel.permissions_for(ctx.guild.me).send_messages:
             return await ctx.send(f"❌ I don't have permission to send messages in {channel.mention}!")
@@ -516,7 +516,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         log_settings['audit'] = audit
         await db.update_guild_settings(ctx.guild.id, {'logging': log_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Audit Channel Set",
             description=f"Audit trail alerts will be sent to {channel.mention}",
             color=0x2ecc71
@@ -528,7 +528,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def ignore_settings(self, ctx):
         """Manage ignored users/channels for logging"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🚫 Logging Ignore Settings",
             description="Configure which users/channels to ignore in logs",
             color=0x95a5a6
@@ -546,7 +546,7 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         )
         await ctx.send(embed=embed)
 
-    async def log_event(self, event_type: str, guild: discord.Guild, **kwargs):
+    async def log_event(self, event_type: str, guild: nextcord.Guild, **kwargs):
         """Log an event to the appropriate channel"""
         settings = await db.get_guild_settings(guild.id)
         log_settings = settings.get('logging', {})
@@ -576,12 +576,12 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         if embed:
             try:
                 await channel.send(embed=embed)
-            except discord.HTTPException as e:
+            except nextcord.HTTPException as e:
                 logger.error(f"Failed to send log message: {e}")
 
-    async def create_log_embed(self, event_type: str, **kwargs) -> Optional[discord.Embed]:
+    async def create_log_embed(self, event_type: str, **kwargs) -> Optional[nextcord.Embed]:
         """Create an embed for a log event"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=LOGGING_EVENTS.get(event_type, event_type.replace('_', ' ').title()),
             timestamp=datetime.utcnow(),
             color=self.get_event_color(event_type)
@@ -636,30 +636,30 @@ class LoggingSettings(commands.Cog, ErrorHandler):
         """Handle errors in this cog"""
         await self.handle_error(ctx, error, "logging settings")
 
-class BulkChannelView(discord.ui.View):
-    def __init__(self, channel: discord.TextChannel, guild_id: int):
+class BulkChannelView(nextcord.ui.View):
+    def __init__(self, channel: nextcord.TextChannel, guild_id: int):
         super().__init__(timeout=60)
         self.channel = channel
         self.guild_id = guild_id
         self.selected_categories = set()
 
-    @discord.ui.select(
+    @nextcord.ui.select(
         placeholder="Select event categories to log in this channel...",
         options=[
-            discord.SelectOption(label="Member Events", value="member", emoji="👥"),
-            discord.SelectOption(label="Message Events", value="message", emoji="💬"),
-            discord.SelectOption(label="Channel Events", value="channel", emoji="📺"),
-            discord.SelectOption(label="Role Events", value="role", emoji="🎭"),
-            discord.SelectOption(label="Voice Events", value="voice", emoji="🔊"),
-            discord.SelectOption(label="Moderation Events", value="moderation", emoji="⚖️"),
-            discord.SelectOption(label="Server Events", value="server", emoji="🏰"),
+            nextcord.SelectOption(label="Member Events", value="member", emoji="👥"),
+            nextcord.SelectOption(label="Message Events", value="message", emoji="💬"),
+            nextcord.SelectOption(label="Channel Events", value="channel", emoji="📺"),
+            nextcord.SelectOption(label="Role Events", value="role", emoji="🎭"),
+            nextcord.SelectOption(label="Voice Events", value="voice", emoji="🔊"),
+            nextcord.SelectOption(label="Moderation Events", value="moderation", emoji="⚖️"),
+            nextcord.SelectOption(label="Server Events", value="server", emoji="🏰"),
         ],
         max_values=7
     )
-    async def select_categories(self, interaction: discord.Interaction, select: discord.ui.Select):
+    async def select_categories(self, interaction: nextcord.Interaction, select: nextcord.ui.Select):
         self.selected_categories = set(select.values)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Selected Categories",
             description=f"Selected categories will be logged to {self.channel.mention}",
             color=0x3498db
@@ -680,8 +680,8 @@ class BulkChannelView(discord.ui.View):
         
         await interaction.response.edit_message(embed=embed, view=self)
 
-    @discord.ui.button(label="Apply Settings", style=discord.ButtonStyle.green, emoji="✅")
-    async def apply_settings(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="Apply Settings", style=nextcord.ButtonStyle.green, emoji="✅")
+    async def apply_settings(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if not self.selected_categories:
             await interaction.response.send_message("❌ Please select at least one category!", ephemeral=True)
             return
@@ -717,7 +717,7 @@ class BulkChannelView(discord.ui.View):
         
         await db.update_guild_settings(self.guild_id, {'logging': log_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Bulk Assignment Complete",
             description=f"Configured {total_events} events to log in {self.channel.mention}",
             color=0x2ecc71
@@ -725,9 +725,9 @@ class BulkChannelView(discord.ui.View):
         
         await interaction.response.edit_message(embed=embed, view=None)
 
-    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red, emoji="❌")
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
-        embed = discord.Embed(
+    @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red, emoji="❌")
+    async def cancel(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
+        embed = nextcord.Embed(
             title="❌ Cancelled",
             description="Bulk channel assignment cancelled.",
             color=0x95a5a6
@@ -735,4 +735,4 @@ class BulkChannelView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=None)
 
 async def setup(bot):
-    await bot.add_cog(LoggingSettings(bot))
+    bot.add_cog(LoggingSettings(bot))

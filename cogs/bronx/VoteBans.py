@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands, tasks
+import nextcord
+from nextcord.ext import commands, tasks
 import json
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -211,14 +211,14 @@ class VoteBans(commands.Cog):
         yes_votes = len(vote_info["votes"]["✅"])
         no_votes = len(vote_info["votes"]["❌"])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"Vote Ban: {user_name}",
             description=(
                 f"**Reason:** {vote_info['reason']}\n\n"
                 f"Vote ✅ to ban ({yes_votes}), ❌ to keep ({no_votes})\n"
                 f"{self.required_votes} votes needed to decide"
             ),
-            color=discord.Colour.random(),
+            color=nextcord.Colour.random(),
             timestamp=datetime.now()
         )
         
@@ -297,11 +297,11 @@ class VoteBans(commands.Cog):
                         message = await channel.fetch_message(message_id)
                         await message.edit(embed=embed_data['embed'])
                         self.last_edit_time[message_id] = asyncio.get_event_loop().time()
-                except discord.NotFound:
+                except nextcord.NotFound:
                     logger.warning(f"Message {message_id} not found for editing")
                     # Clean up vote data for missing messages
                     self.cleanup_missing_vote(message_id)
-                except discord.HTTPException as e:
+                except nextcord.HTTPException as e:
                     logger.error(f"HTTP error editing message {message_id}: {e}")
                     # Wait longer on HTTP errors
                     await asyncio.sleep(5)
@@ -339,13 +339,13 @@ class VoteBans(commands.Cog):
         """Safely fetch a message with error handling"""
         try:
             return await channel.fetch_message(message_id)
-        except discord.NotFound:
+        except nextcord.NotFound:
             logger.warning(f"Message {message_id} not found")
             return None
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             logger.error(f"No permission to fetch message {message_id}")
             return None
-        except discord.HTTPException as e:
+        except nextcord.HTTPException as e:
             logger.error(f"HTTP error fetching message {message_id}: {e}")
             return None
 
@@ -354,9 +354,9 @@ class VoteBans(commands.Cog):
         return ctx.guild.id in self.main_guilds
 
     @commands.command(name="vban", aliases=["voteban", "kill", "vb", "ban"])
-    async def voteban(self, ctx, user: discord.Member=None, *, reason="No reason provided"):
+    async def voteban(self, ctx, user: nextcord.Member=None, *, reason="No reason provided"):
         if not user:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="Vote Ban",
                 description=f"""
                 **Usage:**
@@ -368,7 +368,7 @@ class VoteBans(commands.Cog):
                 `{ctx.prefix}vban @ks.net gay`
                 `{ctx.prefix}vban 814226043924643880 still gay`
                 """,
-                color=discord.Colour.random(),
+                color=nextcord.Colour.random(),
                 timestamp=datetime.now()
             )
             return await ctx.send(embed=embed)
@@ -403,10 +403,10 @@ class VoteBans(commands.Cog):
             }
 
             # Update embed with new advocate list
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"Vote Ban: {user.display_name}",
                 description=f"**Reason:** {existing_vote['reason']}\n\nVote ✅ to ban, ❌ to keep\n{self.required_votes} votes needed to decide",
-                color=discord.Colour.random(),
+                color=nextcord.Colour.random(),
                 timestamp=datetime.now()
             )
             embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
@@ -446,10 +446,10 @@ class VoteBans(commands.Cog):
             )
 
         # Create a new vote embed
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"Vote Ban: {user.display_name}",
             description=f"**Reason:** {reason}\n\nVote ✅ to ban, ❌ to keep\n{self.required_votes} votes needed to decide",
-            color=discord.Colour.random(),
+            color=nextcord.Colour.random(),
             timestamp=datetime.now()
         )
         embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
@@ -464,7 +464,7 @@ class VoteBans(commands.Cog):
             vote_msg = await vote_channel.send(embed=embed)
             await vote_msg.add_reaction("✅")
             await vote_msg.add_reaction("❌")
-        except discord.HTTPException as e:
+        except nextcord.HTTPException as e:
             logger.error(f"Failed to send vote message: {e}")
             return await ctx.send("Failed to create vote! Please try again later.", delete_after=10)
 
@@ -519,10 +519,10 @@ class VoteBans(commands.Cog):
                     user = self.bot.get_user(vote["user_id"])
                     user_name = user.display_name if user else f"User {vote['user_id']}"
                     
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title=f"Vote Ban: {user_name}",
                         description=f"**Reason:** {vote['reason']}\n\nVote ✅ to ban, ❌ to keep\n{self.required_votes} votes needed to decide",
-                        color=discord.Colour.random(),
+                        color=nextcord.Colour.random(),
                         timestamp=datetime.now()
                     )
                     
@@ -564,14 +564,14 @@ class VoteBans(commands.Cog):
         user = self.bot.get_user(vote_info["user_id"])
         user_name = user.display_name if user else f"User {vote_info['user_id']}"
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"Vote Ban: {user_name}",
             description=(
                 f"**Reason:** {vote_info['reason']}\n\n"
                 f"Vote ✅ to ban ({yes_votes}), ❌ to keep ({no_votes})\n"
                 f"{self.required_votes} votes needed to decide"
             ),
-            color=discord.Colour.random(),
+            color=nextcord.Colour.random(),
             timestamp=datetime.now()
         )
         
@@ -613,7 +613,7 @@ class VoteBans(commands.Cog):
         user = self.bot.get_user(vote_info["user_id"])
         user_name = user.display_name if user else f"User {vote_info['user_id']}"
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"Vote Ban Complete: {user_name}",
             description=(
                 f"**Reason:** {vote_info['reason']}\n\n"
@@ -635,11 +635,11 @@ class VoteBans(commands.Cog):
                     embed.description += f"**Result:** {target_user.mention} has been timed out for 1 week!"
                     embed.color = 0xff0000
                     logger.info(f"Successfully timed out user {target_user} (ID: {target_user.id})")
-                except discord.Forbidden:
+                except nextcord.Forbidden:
                     embed.description += "**Result:** Failed to timeout user (missing permissions)"
                     embed.color = 0xffff00
                     logger.error(f"Missing permissions to timeout user {target_user}")
-                except discord.HTTPException as e:
+                except nextcord.HTTPException as e:
                     embed.description += f"**Result:** Error timing out user: {e}"
                     embed.color = 0xffff00
                     logger.error(f"HTTP error timing out user {target_user}: {e}")
@@ -654,16 +654,16 @@ class VoteBans(commands.Cog):
         try:
             await message.edit(embed=embed)
             await message.clear_reactions()
-        except discord.HTTPException as e:
+        except nextcord.HTTPException as e:
             logger.error(f"Failed to update completed vote message: {e}")
     
     @commands.command(name="votestats", aliases=["vs"])
-    async def vote_stats(self, ctx, user: discord.Member = None):
+    async def vote_stats(self, ctx, user: nextcord.Member = None):
         if not user:
             return await ctx.send("Please specify a user to check stats for.", delete_after=10)
             
         user_id_str = str(user.id)
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"Vote Stats for {user.display_name}",
             color=0x7289da
         )
@@ -722,7 +722,7 @@ class VoteBans(commands.Cog):
 
 async def setup(bot):
     try:
-        await bot.add_cog(VoteBans(bot))
+        bot.add_cog(VoteBans(bot))
     except Exception as e:
         logger.error(f"Failed to load VoteBans cog: {e}")
         raise e

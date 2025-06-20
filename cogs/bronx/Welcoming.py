@@ -1,7 +1,7 @@
-import discord
+import nextcord
 import random
 import json
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from utils.db import db
 
@@ -19,9 +19,9 @@ def welcome_embed(member):
     character = WELCOME_DATA["characters"][character_name]
     character_url = character['image']
     
-    return discord.Embed(
+    return nextcord.Embed(
         description=f"\"{random.choice(character['messages'])}\"\n\n[main](https://discord.gg/furryporn) • [backup](https://discord.gg/W563EnFwed) • [appeal](https://discord.gg/6Th9dsw6rM)",
-        color=discord.Color.random()
+        color=nextcord.Color.random()
     ).set_author(
         name=character_name,  # Use the character name directly
         icon_url=character_url,
@@ -43,9 +43,9 @@ class Welcoming(commands.Cog):
         if member.guild.id not in self.main_guilds:
             return
 
-        with open('data/config.json', 'r') as f:
-            config = json.load(f)
-            welcome_channel = config.get('WELCOME_CHANNEL', 1378156495144751147)
+        # Load welcome channel from environment or use default
+        import os
+        welcome_channel = int(os.getenv('WELCOME_CHANNEL', '1378156495144751147'))
 
         logger.info(f"[+] Member joined: {member} in guild {member.guild.id}")
 
@@ -58,7 +58,7 @@ class Welcoming(commands.Cog):
             embed = welcome_embed(member)
             try:
                 await member.send(embed=embed)
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 logger.warning(f"Could not DM {member} (forbidden).")
             try:
                 await db.store_stats(member.guild.id, "gained")
@@ -71,7 +71,7 @@ class Welcoming(commands.Cog):
         try:
             await ctx.author.send(embed=welcome_embed(ctx.author))
             await ctx.reply("Check your DMs for the welcome message!")
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             await ctx.reply("Couldn't DM you! Please enable DMs from server members.")
 
     @commands.Cog.listener()
@@ -87,7 +87,7 @@ class Welcoming(commands.Cog):
 
 async def setup(bot):
     try:
-        await bot.add_cog(Welcoming(bot))
+        bot.add_cog(Welcoming(bot))
     except Exception as e:
         logger.error(f"Failed to load Welcoming cog: {e}")
         raise e

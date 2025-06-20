@@ -25,27 +25,38 @@ class ConfigManager:
                 self.logger.warning(f"Config file {self.config_file} not found, using defaults")
                 self._config = {}
             
-            # Override with environment variables
+            # Override with environment variables - prioritize .env over config.json
             env_mappings = {
                 'TOKEN': 'DISCORD_TOKEN',
                 'DEV_TOKEN': 'DISCORD_DEV_TOKEN', 
-                'MONGO_URI': 'MONGODB_URI',
+                'MONGO_URI': 'MONGO_URI',
                 'CLIENT_ID': 'DISCORD_CLIENT_ID',
-                'DEV': 'DEVELOPMENT_MODE'
+                'CLIENT_SECRET': 'DISCORD_CLIENT_SECRET',
+                'DEV': 'DEV',
+                'GUILD_COUNT': 'GUILD_COUNT',
+                'OWNER_REPLY': 'OWNER_REPLY',
+                'OWNER_IDS': 'DISCORD_BOT_OWNER_IDS',
+                'OWNER_ID': 'DISCORD_BOT_OWNER_IDS',  # For compatibility
+                'lastfm_api_key': 'LASTFM_API_KEY',
+                'lastfm_api_secret': 'LASTFM_API_SECRET',
+                'WELCOME_CHANNEL': 'WELCOME_CHANNEL'
             }
             
             for config_key, env_key in env_mappings.items():
                 env_value = os.getenv(env_key)
                 if env_value:
+                    # Handle comma-separated values for owner IDs
+                    if config_key in ['OWNER_IDS', 'OWNER_ID'] and ',' in env_value:
+                        env_value = env_value.split(',')
                     # Convert boolean strings
-                    if env_value.lower() in ('true', 'false'):
+                    elif env_value.lower() in ('true', 'false'):
                         env_value = env_value.lower() == 'true'
                     # Convert numeric strings
                     elif env_value.isdigit():
                         env_value = int(env_value)
                     
                     self._config[config_key] = env_value
-                    self.logger.info(f"Overrode {config_key} from environment")
+                    self.logger.info(f"Loaded {config_key} from environment variable {env_key}")
             
         except Exception as e:
             self.logger.error(f"Error loading config: {e}")

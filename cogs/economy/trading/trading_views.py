@@ -3,8 +3,8 @@ Trading Views Module
 UI components and views for the trading system.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from utils.db import AsyncDatabase
 from collections import Counter
 from typing import Optional
@@ -12,7 +12,7 @@ import asyncio
 
 db = AsyncDatabase.get_instance()
 
-class TradeConfirmationView(discord.ui.View):
+class TradeConfirmationView(nextcord.ui.View):
     def __init__(self, trade_offer, bot, timeout=300):
         super().__init__(timeout=timeout)
         self.trade_offer = trade_offer
@@ -21,8 +21,8 @@ class TradeConfirmationView(discord.ui.View):
         self.target_confirmed = False
         self.message = None
     
-    @discord.ui.button(label="✅ Confirm Trade", style=discord.ButtonStyle.success)
-    async def confirm_trade(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="✅ Confirm Trade", style=nextcord.ButtonStyle.success)
+    async def confirm_trade(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         user_id = interaction.user.id
         
         if user_id == self.trade_offer.initiator_id:
@@ -41,8 +41,8 @@ class TradeConfirmationView(discord.ui.View):
         if self.initiator_confirmed and self.target_confirmed:
             await self._execute_trade()
     
-    @discord.ui.button(label="❌ Cancel Trade", style=discord.ButtonStyle.danger)
-    async def cancel_trade(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="❌ Cancel Trade", style=nextcord.ButtonStyle.danger)
+    async def cancel_trade(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         user_id = interaction.user.id
         
         if user_id not in [self.trade_offer.initiator_id, self.trade_offer.target_id]:
@@ -50,7 +50,7 @@ class TradeConfirmationView(discord.ui.View):
         
         self.trade_offer.status = "cancelled"
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="❌ Trade Cancelled",
             description=f"Trade #{self.trade_offer.trade_id} has been cancelled.",
             color=0xff0000
@@ -67,7 +67,7 @@ class TradeConfirmationView(discord.ui.View):
         initiator = self.bot.get_user(self.trade_offer.initiator_id)
         target = self.bot.get_user(self.trade_offer.target_id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🤝 Trade Confirmation #{self.trade_offer.trade_id}",
             color=0xffa500
         )
@@ -102,7 +102,7 @@ class TradeConfirmationView(discord.ui.View):
         
         try:
             await self.message.edit(embed=embed, view=self)
-        except discord.NotFound:
+        except nextcord.NotFound:
             pass
     
     def _format_trade_items(self, items: list, currency: int) -> str:
@@ -142,7 +142,7 @@ class TradeConfirmationView(discord.ui.View):
         try:
             # Verify both users still have the items and currency
             if not await self.verify_trade_validity():
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Trade Failed",
                     description="One or both users no longer have the required items or currency.",
                     color=0xff0000
@@ -157,7 +157,7 @@ class TradeConfirmationView(discord.ui.View):
                 # Log the trade
                 await self._log_trade()
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="✅ Trade Completed!",
                     description=f"Trade #{self.trade_offer.trade_id} has been successfully completed!",
                     color=0x00ff00
@@ -175,7 +175,7 @@ class TradeConfirmationView(discord.ui.View):
                 
                 await self.message.edit(embed=embed, view=None)
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Trade Failed",
                     description="An error occurred while processing the trade.",
                     color=0xff0000
@@ -183,7 +183,7 @@ class TradeConfirmationView(discord.ui.View):
                 await self.message.edit(embed=embed, view=None)
         
         except Exception as e:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Trade Error",
                 description=f"An unexpected error occurred during the trade.\n```py\n{str(e)}\n```",
                 color=0xff0000
@@ -242,14 +242,14 @@ class TradeConfirmationView(discord.ui.View):
             print(f"Trade logging error: {e}")
 
 
-class QuickTradeView(discord.ui.View):
+class QuickTradeView(nextcord.ui.View):
     def __init__(self, trade_offer, bot, timeout=300):
         super().__init__(timeout=timeout)
         self.trade_offer = trade_offer
         self.bot = bot
     
-    @discord.ui.button(label="✅ Accept", style=discord.ButtonStyle.success)
-    async def accept_trade(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="✅ Accept", style=nextcord.ButtonStyle.success)
+    async def accept_trade(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.trade_offer.target_id:
             return await interaction.response.send_message("❌ This trade isn't for you!", ephemeral=True)
         
@@ -257,7 +257,7 @@ class QuickTradeView(discord.ui.View):
         view = TradeConfirmationView(self.trade_offer, self.bot)
         view.target_confirmed = True  # Auto-confirm target
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Quick Trade Accepted!",
             description="Trade accepted! Waiting for final confirmation.",
             color=0x00ff00
@@ -266,20 +266,20 @@ class QuickTradeView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=view)
         view.message = interaction.message
     
-    @discord.ui.button(label="💰 Counter Offer", style=discord.ButtonStyle.secondary)
-    async def counter_offer(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="💰 Counter Offer", style=nextcord.ButtonStyle.secondary)
+    async def counter_offer(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.trade_offer.target_id:
             return await interaction.response.send_message("❌ This trade isn't for you!", ephemeral=True)
         
         modal = CounterOfferModal(self.trade_offer, self.bot)
         await interaction.response.send_modal(modal)
     
-    @discord.ui.button(label="❌ Decline", style=discord.ButtonStyle.danger)
-    async def decline_trade(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="❌ Decline", style=nextcord.ButtonStyle.danger)
+    async def decline_trade(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.trade_offer.target_id:
             return await interaction.response.send_message("❌ This trade isn't for you!", ephemeral=True)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="❌ Trade Declined",
             description="The trade offer has been declined.",
             color=0xff0000
@@ -289,13 +289,13 @@ class QuickTradeView(discord.ui.View):
         self.stop()
 
 
-class CounterOfferModal(discord.ui.Modal):
+class CounterOfferModal(nextcord.ui.Modal):
     def __init__(self, trade_offer, bot):
         super().__init__(title="💰 Counter Offer")
         self.trade_offer = trade_offer
         self.bot = bot
         
-        self.currency_amount = discord.ui.TextInput(
+        self.currency_amount = nextcord.ui.TextInput(
             label="Currency Amount",
             placeholder="Enter amount of currency to offer...",
             required=True,
@@ -303,7 +303,7 @@ class CounterOfferModal(discord.ui.Modal):
         )
         self.add_item(self.currency_amount)
     
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: nextcord.Interaction):
         try:
             amount = int(self.currency_amount.value)
             if amount <= 0:
@@ -323,7 +323,7 @@ class CounterOfferModal(discord.ui.Modal):
             # Convert to confirmation view
             view = TradeConfirmationView(self.trade_offer, self.bot)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="💰 Counter Offer Made!",
                 description="Counter offer submitted! Both parties must now confirm.",
                 color=0xffa500

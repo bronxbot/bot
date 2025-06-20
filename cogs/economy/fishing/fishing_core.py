@@ -1,13 +1,13 @@
 # Core Fishing Commands Module
 # Contains the main fishing command and related mechanics
 
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from utils.db import db
 from utils.safe_reply import safe_reply
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
 from utils.weight_formatter import format_weight
-import discord
+import nextcord
 import random
 import uuid
 import datetime
@@ -219,7 +219,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
             bait = await self.get_user_bait(ctx.author.id)
             
             if not rods:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🎣 First Time Fishing",
                     description="You need a fishing rod to start! Buy one from `.shop rod`",
                     color=0x4a90e2
@@ -232,7 +232,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
                 return await ctx.reply(embed=embed)
             
             if not bait:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🪱 No Bait Available",
                     description="You need bait to go fishing! Buy some from `.shop bait`",
                     color=0xff6b6b
@@ -283,7 +283,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
             bait_rates = current_bait.get("catch_rates", {})
             
             # Display suspense message
-            suspense_embed = discord.Embed(
+            suspense_embed = nextcord.Embed(
                 title="🎣 Casting your line...",
                 description=f"🎣 Using **{rod['name']}** with **{current_bait['name']}**",
                 color=0x4a90e2
@@ -311,7 +311,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
             # Check rod durability first
             if not await self.check_rod_durability(rod_durability, rod_price):
                 # Rod breaks!
-                break_embed = discord.Embed(
+                break_embed = nextcord.Embed(
                     title="💥 Rod Broke!",
                     description=f"Your **{rod['name']}** snapped under pressure!",
                     color=0xff4444
@@ -354,7 +354,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
                 # Normal fishing logic
                 total_weight = sum(adjusted_rates.values())
                 if total_weight == 0:
-                    await message.edit(embed=discord.Embed(
+                    await message.edit(embed=nextcord.Embed(
                         title="🌊 No Bite",
                         description="Nothing seems interested in your bait...",
                         color=0x6495ed
@@ -386,7 +386,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
                 rarity_config = self._get_rarity_config()
                 config = rarity_config.get(caught_rarity, {"color": 0x8b0000, "emoji": "🐟"})
                 
-                escape_embed = discord.Embed(
+                escape_embed = nextcord.Embed(
                     title="💔 The one that got away...",
                     description=f"A **{fish_template['name']}** ({format_weight(fish_weight)}) broke free!",
                     color=config['color']
@@ -444,7 +444,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
                 fish_count = len([f for f in user_fish if f.get('name') == fish['name']])
                 
                 # Create enhanced success embed
-                success_embed = discord.Embed(
+                success_embed = nextcord.Embed(
                     title=f"{config['emoji']} Fish Caught!",
                     description=f"You caught a **{fish['name']}**!",
                     color=config['color']
@@ -492,7 +492,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
                 await message.edit(embed=success_embed)
                 
             else:
-                await message.edit(embed=discord.Embed(
+                await message.edit(embed=nextcord.Embed(
                     title="❌ Storage Error",
                     description="Failed to store your catch! Please try again.",
                     color=0xff0000
@@ -541,7 +541,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
                 return await ctx.reply("❌ Could not calculate catch rates!")
             
             # Create embed
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎣 Fishing Catch Rates",
                 description=f"**Rod:** {rod['name']} (x{rod_multiplier})\n**Bait:** {bait['name']}",
                 color=0x4a90e2
@@ -583,7 +583,7 @@ class FishingCore(commands.Cog, name="FishingCore"):
         try:
             active_gear = await db.get_active_fishing_gear(ctx.author.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎣 Currently Equipped Gear",
                 color=0x2b2d31
             )
@@ -653,4 +653,4 @@ class FishingCore(commands.Cog, name="FishingCore"):
             await ctx.reply("❌ An error occurred while viewing your gear!")
 
 async def setup(bot):
-    await bot.add_cog(FishingCore(bot))
+    bot.add_cog(FishingCore(bot))

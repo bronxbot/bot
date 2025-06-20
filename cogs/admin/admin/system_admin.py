@@ -3,8 +3,8 @@ System Administration Module
 Admin functions for system maintenance and management.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import asyncio
 import traceback
 from typing import Dict, List, Optional, Any, Tuple
@@ -111,7 +111,7 @@ class SystemAdmin:
         try:
             backup_data = {
                 "guild_id": guild_id,
-                "backup_timestamp": discord.utils.utcnow().isoformat(),
+                "backup_timestamp": nextcord.utils.utcnow().isoformat(),
                 "user_data": await db.get_all_guild_user_data(guild_id),
                 "guild_settings": await db.get_guild_settings(guild_id),
                 "shop_data": await db.get_guild_shop_data(guild_id),
@@ -235,16 +235,16 @@ class SystemAdmin:
         """Update bot's activity status"""
         try:
             activity_types = {
-                "playing": discord.ActivityType.playing,
-                "listening": discord.ActivityType.listening,
-                "watching": discord.ActivityType.watching,
-                "competing": discord.ActivityType.competing
+                "playing": nextcord.ActivityType.playing,
+                "listening": nextcord.ActivityType.listening,
+                "watching": nextcord.ActivityType.watching,
+                "competing": nextcord.ActivityType.competing
             }
             
             if activity_type.lower() not in activity_types:
                 return False, f"❌ Invalid activity type. Valid types: {', '.join(activity_types.keys())}"
             
-            activity = discord.Activity(
+            activity = nextcord.Activity(
                 type=activity_types[activity_type.lower()],
                 name=activity_name
             )

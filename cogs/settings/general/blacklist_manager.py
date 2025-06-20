@@ -3,8 +3,8 @@ Blacklist Manager
 Handles command blacklist functionality.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import Dict, List, Set
 
 from utils.db import AsyncDatabase
@@ -22,7 +22,7 @@ class BlacklistManager:
 
     async def show_blacklist(self, ctx):
         """Show blacklist management interface"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🚫 Blacklist Management",
             description=(
                 "Manage command blacklists - prevent specific channels/roles/users from using commands\n\n"
@@ -46,7 +46,7 @@ class BlacklistManager:
         blacklist = settings.get('command_blacklist', {})
         
         if not blacklist:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🚫 Command Blacklist",
                 description="No command blacklists configured",
                 color=0x95a5a6
@@ -54,7 +54,7 @@ class BlacklistManager:
             await ctx.send(embed=embed)
             return
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🚫 Command Blacklist",
             description="Commands blocked for specific channels/roles/users",
             color=0xe74c3c
@@ -107,7 +107,7 @@ class BlacklistManager:
         
         await ctx.send(embed=embed)
 
-    async def blacklist_channel(self, ctx, channel: discord.TextChannel, command: str):
+    async def blacklist_channel(self, ctx, channel: nextcord.TextChannel, command: str):
         """Blacklist a command for a specific channel"""
         if not await self._validate_command(command):
             await ctx.send(f"❌ Command `{command}` not found")
@@ -130,7 +130,7 @@ class BlacklistManager:
         blacklist[command]['channels'].append(channel.id)
         await db.update_guild_settings(ctx.guild.id, {'command_blacklist': blacklist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Blacklist Added",
             description=f"Command `{command}` is now blacklisted for {channel.mention}",
             color=0x2ecc71
@@ -138,7 +138,7 @@ class BlacklistManager:
         await ctx.send(embed=embed)
         logger.info(f"Command '{command}' blacklisted for channel {channel.id} in guild {ctx.guild.id}")
 
-    async def blacklist_role(self, ctx, role: discord.Role, command: str):
+    async def blacklist_role(self, ctx, role: nextcord.Role, command: str):
         """Blacklist a command for a specific role"""
         if not await self._validate_command(command):
             await ctx.send(f"❌ Command `{command}` not found")
@@ -161,7 +161,7 @@ class BlacklistManager:
         blacklist[command]['roles'].append(role.id)
         await db.update_guild_settings(ctx.guild.id, {'command_blacklist': blacklist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Blacklist Added",
             description=f"Command `{command}` is now blacklisted for {role.mention}",
             color=0x2ecc71
@@ -169,7 +169,7 @@ class BlacklistManager:
         await ctx.send(embed=embed)
         logger.info(f"Command '{command}' blacklisted for role {role.id} in guild {ctx.guild.id}")
 
-    async def blacklist_user(self, ctx, user: discord.Member, command: str):
+    async def blacklist_user(self, ctx, user: nextcord.Member, command: str):
         """Blacklist a command for a specific user"""
         if not await self._validate_command(command):
             await ctx.send(f"❌ Command `{command}` not found")
@@ -192,7 +192,7 @@ class BlacklistManager:
         blacklist[command]['users'].append(user.id)
         await db.update_guild_settings(ctx.guild.id, {'command_blacklist': blacklist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Blacklist Added",
             description=f"Command `{command}` is now blacklisted for {user.mention}",
             color=0x2ecc71
@@ -200,7 +200,7 @@ class BlacklistManager:
         await ctx.send(embed=embed)
         logger.info(f"Command '{command}' blacklisted for user {user.id} in guild {ctx.guild.id}")
 
-    async def remove_blacklist_channel(self, ctx, channel: discord.TextChannel, command: str):
+    async def remove_blacklist_channel(self, ctx, channel: nextcord.TextChannel, command: str):
         """Remove channel blacklist for a command"""
         settings = await db.get_guild_settings(ctx.guild.id)
         blacklist = settings.get('command_blacklist', {})
@@ -217,7 +217,7 @@ class BlacklistManager:
         
         await db.update_guild_settings(ctx.guild.id, {'command_blacklist': blacklist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Blacklist Removed",
             description=f"Command `{command}` blacklist removed for {channel.mention}",
             color=0x2ecc71
@@ -225,7 +225,7 @@ class BlacklistManager:
         await ctx.send(embed=embed)
         logger.info(f"Command '{command}' blacklist removed for channel {channel.id} in guild {ctx.guild.id}")
 
-    async def remove_blacklist_role(self, ctx, role: discord.Role, command: str):
+    async def remove_blacklist_role(self, ctx, role: nextcord.Role, command: str):
         """Remove role blacklist for a command"""
         settings = await db.get_guild_settings(ctx.guild.id)
         blacklist = settings.get('command_blacklist', {})
@@ -242,7 +242,7 @@ class BlacklistManager:
         
         await db.update_guild_settings(ctx.guild.id, {'command_blacklist': blacklist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Blacklist Removed",
             description=f"Command `{command}` blacklist removed for {role.mention}",
             color=0x2ecc71
@@ -250,7 +250,7 @@ class BlacklistManager:
         await ctx.send(embed=embed)
         logger.info(f"Command '{command}' blacklist removed for role {role.id} in guild {ctx.guild.id}")
 
-    async def remove_blacklist_user(self, ctx, user: discord.Member, command: str):
+    async def remove_blacklist_user(self, ctx, user: nextcord.Member, command: str):
         """Remove user blacklist for a command"""
         settings = await db.get_guild_settings(ctx.guild.id)
         blacklist = settings.get('command_blacklist', {})
@@ -267,7 +267,7 @@ class BlacklistManager:
         
         await db.update_guild_settings(ctx.guild.id, {'command_blacklist': blacklist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Blacklist Removed",
             description=f"Command `{command}` blacklist removed for {user.mention}",
             color=0x2ecc71

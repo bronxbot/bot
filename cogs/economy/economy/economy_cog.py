@@ -1,8 +1,8 @@
 """
 Main Economy Cog - Core economy commands and functionality
 """
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import random
 import json
 from functools import wraps
@@ -23,9 +23,13 @@ from .economy_utils import (
 )
 from .economy_views import PaymentConfirmView, LeaderboardPaginationView, InventoryPaginationView
 
-# Load config
-with open('data/config.json', 'r') as f:
-    config_data = json.load(f)
+# Load config from environment variables
+import os
+config_data = {
+    'OWNER_IDS': os.getenv('DISCORD_BOT_OWNER_IDS', '').split(',') if os.getenv('DISCORD_BOT_OWNER_IDS') else [],
+    'CLIENT_ID': os.getenv('DISCORD_CLIENT_ID', ''),
+    'GUILD_COUNT': int(os.getenv('GUILD_COUNT', '0'))
+}
 
 def log_command(func):
     """Decorator to log command usage"""
@@ -68,7 +72,7 @@ class Economy(commands.Cog):
 
     @commands.command(aliases=['bal', 'cash', 'bb'])
     @log_command
-    async def balance(self, ctx, member: discord.Member = None):
+    async def balance(self, ctx, member: nextcord.Member = None):
         """Check your or another user's balance"""
         member = member or ctx.author
         
@@ -164,7 +168,7 @@ class Economy(commands.Cog):
     @commands.command(name="pay", aliases=["transfer"])
     @commands.cooldown(1, COOLDOWNS["pay"], commands.BucketType.user)
     @log_command
-    async def pay(self, ctx, member: discord.Member, amount: str):
+    async def pay(self, ctx, member: nextcord.Member, amount: str):
         """Pay another user with confirmation"""
         if member == ctx.author:
             return await safe_reply(ctx, "❌ You can't pay yourself!")
@@ -181,7 +185,7 @@ class Economy(commands.Cog):
             # Create payment confirmation view
             view = PaymentConfirmView(ctx.author, member, parsed_amount)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="💸 Payment Request",
                 description=f"**{ctx.author.display_name}** wants to pay you **{parsed_amount:,}** {self.currency}",
                 color=COLORS["info"]
@@ -197,14 +201,14 @@ class Economy(commands.Cog):
                 view.message = message
                 
                 # Send confirmation to sender
-                sender_embed = discord.Embed(
+                sender_embed = nextcord.Embed(
                     title="📨 Payment Request Sent",
                     description=f"Payment request of **{parsed_amount:,}** {self.currency} sent to {member.display_name}",
                     color=COLORS["success"]
                 )
                 await safe_reply(ctx, embed=sender_embed)
                 
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 # If DM fails, send in channel
                 embed.set_footer(text=f"{member.display_name}, this payment request will expire in 5 minutes")
                 message = await safe_reply(ctx, f"{member.mention}", embed=embed, view=view)
@@ -234,7 +238,7 @@ class Economy(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 300, commands.BucketType.user)
     @log_command
-    async def rob(self, ctx, victim: discord.Member):
+    async def rob(self, ctx, victim: nextcord.Member):
         """Attempt to rob someone"""
         if victim == ctx.author:
             return await safe_reply(ctx, "You can't rob yourself!")
@@ -274,7 +278,7 @@ class Economy(commands.Cog):
             
             if not leaderboard_data:
                 scope_text = "global" if scope.lower() in ["global", "g", "world", "all"] else "server"
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"No {scope_text} economy data found.",
                     color=COLORS["neutral"]
                 )
@@ -307,7 +311,7 @@ class Economy(commands.Cog):
             # Add interest to bank
             await db.update_bank(ctx.author.id, interest, ctx.guild.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="💰 Interest Collected!",
                 description=f"You earned **{interest:,}** {self.currency} in interest!",
                 color=COLORS["success"]
@@ -329,7 +333,7 @@ class Economy(commands.Cog):
             interest_level = await db.get_interest_level(ctx.author.id, ctx.guild.id)
             _, current_rate = await calculate_interest(ctx.author.id, ctx.guild.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="💹 Interest Information",
                 color=COLORS["info"]
             )
@@ -386,7 +390,7 @@ class Economy(commands.Cog):
             # Process the upgrade
             if await db.update_wallet(ctx.author.id, -cost, ctx.guild.id):
                 if await db.set_interest_level(ctx.author.id, ctx.guild.id, upgrade_info['level']):
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="📈 Interest Rate Upgraded!",
                         description=f"Upgraded to Level {upgrade_info['level']}!",
                         color=COLORS["success"]
@@ -433,7 +437,7 @@ class Economy(commands.Cog):
             # Process the upgrade
             if await db.update_wallet(ctx.author.id, -cost, ctx.guild.id):
                 if await db.set_bank_level(ctx.author.id, ctx.guild.id, upgrade_info['level']):
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="🏦 Bank Upgraded!",
                         description=f"Upgraded to Level {upgrade_info['level']}!",
                         color=COLORS["success"]
@@ -468,7 +472,7 @@ class Economy(commands.Cog):
         try:
             reward_data = await process_vote_reward(ctx.author.id, ctx.guild.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🗳️ Vote Reward Claimed!",
                 description=f"Thank you for voting! You received **{reward_data['total_reward']:,}** {self.currency}!",
                 color=COLORS["success"]
@@ -503,7 +507,7 @@ class Economy(commands.Cog):
 
     @commands.command(aliases=['inv', 'items', 'bag'])
     @log_command
-    async def inventory(self, ctx, member: discord.Member = None):
+    async def inventory(self, ctx, member: nextcord.Member = None):
         """View your or another user's inventory"""
         member = member or ctx.author
         
@@ -511,7 +515,7 @@ class Economy(commands.Cog):
             inventory_data = await db.get_inventory(member.id) or []
             
             if not inventory_data:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title=f"🎒 {member.display_name}'s Inventory",
                     description="This inventory is empty!",
                     color=member.color
@@ -527,5 +531,5 @@ class Economy(commands.Cog):
             self.logger.error(f"Inventory error for {member.id}: {e}")
             await safe_reply(ctx, "An error occurred while fetching the inventory.")
 
-def setup(bot):
+async def setup(bot):
     bot.add_cog(Economy(bot))

@@ -1,12 +1,12 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import List, Dict, Any
 from .help_utils import HelpUtils
 
-class HelpPaginator(discord.ui.View):
+class HelpPaginator(nextcord.ui.View):
     """Interactive paginator for help system with dropdown navigation"""
     
-    def __init__(self, pages: List[discord.Embed], author: discord.Member, cog_page_map: Dict[str, int], timeout=180):
+    def __init__(self, pages: List[nextcord.Embed], author: nextcord.Member, cog_page_map: Dict[str, int], timeout=180):
         super().__init__(timeout=timeout)
         self.pages = pages
         self.author = author
@@ -48,14 +48,14 @@ class HelpPaginator(discord.ui.View):
         """Setup select menus based on current select page"""
         # Clear existing select menus
         for item in self.children[:]:
-            if isinstance(item, discord.ui.Select):
+            if isinstance(item, nextcord.ui.Select):
                 self.remove_item(item)
         
         if not self.cog_groups:
             return
         
         # Add main category select
-        select = discord.ui.Select(
+        select = nextcord.ui.Select(
             placeholder="🗂️ Choose a category...",
             custom_id="category_select",
             row=0
@@ -117,7 +117,7 @@ class HelpPaginator(discord.ui.View):
         # Set the callback for the select
         select.callback = self.category_select_callback
 
-    async def category_select_callback(self, interaction: discord.Interaction):
+    async def category_select_callback(self, interaction: nextcord.Interaction):
         """Handle category selection"""
         if interaction.user.id != self.author.id:
             await interaction.response.send_message("❌ This help menu is not for you!", ephemeral=True)
@@ -126,7 +126,7 @@ class HelpPaginator(discord.ui.View):
         # Get the select component that triggered this
         select = None
         for item in self.children:
-            if isinstance(item, discord.ui.Select) and item.custom_id == "category_select":
+            if isinstance(item, nextcord.ui.Select) and item.custom_id == "category_select":
                 select = item
                 break
         
@@ -156,8 +156,8 @@ class HelpPaginator(discord.ui.View):
         self.update_buttons()
         await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
 
-    @discord.ui.button(label="◀️ Previous", style=discord.ButtonStyle.gray, row=1)
-    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="◀️ Previous", style=nextcord.ButtonStyle.gray, row=1)
+    async def previous_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         """Go to previous page"""
         if interaction.user.id != self.author.id:
             await interaction.response.send_message("❌ This help menu is not for you!", ephemeral=True)
@@ -170,8 +170,8 @@ class HelpPaginator(discord.ui.View):
         else:
             await interaction.response.defer()
 
-    @discord.ui.button(label="🏠 Home", style=discord.ButtonStyle.primary, row=1)
-    async def home_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="🏠 Home", style=nextcord.ButtonStyle.primary, row=1)
+    async def home_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         """Go to overview page"""
         if interaction.user.id != self.author.id:
             await interaction.response.send_message("❌ This help menu is not for you!", ephemeral=True)
@@ -181,8 +181,8 @@ class HelpPaginator(discord.ui.View):
         self.update_buttons()
         await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
 
-    @discord.ui.button(label="Next ▶️", style=discord.ButtonStyle.gray, row=1)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="Next ▶️", style=nextcord.ButtonStyle.gray, row=1)
+    async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         """Go to next page"""
         if interaction.user.id != self.author.id:
             await interaction.response.send_message("❌ This help menu is not for you!", ephemeral=True)
@@ -195,8 +195,8 @@ class HelpPaginator(discord.ui.View):
         else:
             await interaction.response.defer()
 
-    @discord.ui.button(label="🔍 Search", style=discord.ButtonStyle.green, row=1)
-    async def search_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="🔍 Search", style=nextcord.ButtonStyle.green, row=1)
+    async def search_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         """Open search modal"""
         if interaction.user.id != self.author.id:
             await interaction.response.send_message("❌ This help menu is not for you!", ephemeral=True)
@@ -205,8 +205,8 @@ class HelpPaginator(discord.ui.View):
         modal = SearchModal(self.utils, interaction.user)
         await interaction.response.send_modal(modal)
 
-    @discord.ui.button(label="❌ Close", style=discord.ButtonStyle.red, row=1)
-    async def close_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="❌ Close", style=nextcord.ButtonStyle.red, row=1)
+    async def close_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         """Close the help menu"""
         if interaction.user.id != self.author.id:
             await interaction.response.send_message("❌ This help menu is not for you!", ephemeral=True)
@@ -223,7 +223,7 @@ class HelpPaginator(discord.ui.View):
         next_button = None
         
         for item in self.children:
-            if isinstance(item, discord.ui.Button):
+            if isinstance(item, nextcord.ui.Button):
                 if "Previous" in item.label:
                     prev_button = item
                 elif "Home" in item.label:
@@ -245,26 +245,26 @@ class HelpPaginator(discord.ui.View):
         if self.message:
             try:
                 await self.message.edit(view=None)
-            except discord.NotFound:
+            except nextcord.NotFound:
                 pass
 
 
-class SearchModal(discord.ui.Modal, title="🔍 Search Commands"):
+class SearchModal(nextcord.ui.Modal):
     """Modal for searching commands"""
     
-    def __init__(self, utils: HelpUtils, user: discord.Member):
-        super().__init__()
+    def __init__(self, utils: HelpUtils, user: nextcord.Member):
+        super().__init__(title="🔍 Search Commands")
         self.utils = utils
         self.user = user
     
-    search_query = discord.ui.TextInput(
+    search_query = nextcord.ui.TextInput(
         label="Search Query",
         placeholder="Enter command name, alias, or description...",
         max_length=100,
         required=True
     )
     
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: nextcord.Interaction):
         """Handle search submission"""
         query = self.search_query.value.strip()
         
@@ -284,7 +284,7 @@ class SearchModal(discord.ui.Modal, title="🔍 Search Commands"):
             return
         
         # Create search results embed
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🔍 Search Results for '{query}'",
             color=0x00ff00
         )

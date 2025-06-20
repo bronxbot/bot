@@ -1,12 +1,12 @@
 # Fishing Statistics and Leaderboards Module
 # Handles fishing statistics, leaderboards, and user fishing data
 
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from utils.db import db
 from utils.safe_reply import safe_reply
 from utils.weight_formatter import format_weight
-import discord
+import nextcord
 import math
 from .fishing_ui import GlobalFishPaginator
 
@@ -95,7 +95,7 @@ class FishingStats(commands.Cog, name="FishingStats"):
             await ctx.reply("❌ An error occurred while fetching the leaderboard!")
 
     @commands.command(name="fishstats", aliases=["fs_stats"])
-    async def fish_stats(self, ctx, user: discord.Member = None):
+    async def fish_stats(self, ctx, user: nextcord.Member = None):
         """View fishing statistics for yourself or another user"""
         try:
             target_user = user or ctx.author
@@ -124,7 +124,7 @@ class FishingStats(commands.Cog, name="FishingStats"):
             heaviest_fish = max(user_fish, key=lambda x: x.get("weight", 0)) if user_fish else None
             
             # Create embed
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"🎣 {target_user.display_name}'s Fishing Statistics",
                 color=0x2b2d31
             )
@@ -189,4 +189,4 @@ class FishingStats(commands.Cog, name="FishingStats"):
             await ctx.reply("❌ An error occurred while calculating fishing statistics!")
 
 async def setup(bot):
-    await bot.add_cog(FishingStats(bot))
+    bot.add_cog(FishingStats(bot))

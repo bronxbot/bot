@@ -1,16 +1,16 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
+import nextcord
+from nextcord.ext import commands
+# from nextcord import app_commands  # Not available in nextcord
 import asyncio
 from typing import Optional
 
-class TicTacToeButton(discord.ui.Button):
+class TicTacToeButton(nextcord.ui.Button):
     def __init__(self, x: int, y: int):
-        super().__init__(style=discord.ButtonStyle.secondary, label='\u200b', row=y)
+        super().__init__(style=nextcord.ButtonStyle.secondary, label='\u200b', row=y)
         self.x = x
         self.y = y
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         view: TicTacToeView = self.view
         state = view.board[self.y][self.x]
         
@@ -26,13 +26,13 @@ class TicTacToeButton(discord.ui.Button):
 
         # Make the move
         if view.current_player == view.player1:
-            self.style = discord.ButtonStyle.danger
+            self.style = nextcord.ButtonStyle.danger
             self.label = 'X'
             self.emoji = '❌'
             view.board[self.y][self.x] = view.X
             view.current_player = view.player2
         else:
-            self.style = discord.ButtonStyle.primary
+            self.style = nextcord.ButtonStyle.primary
             self.label = 'O'
             self.emoji = '⭕'
             view.board[self.y][self.x] = view.O
@@ -61,12 +61,12 @@ class TicTacToeButton(discord.ui.Button):
             content = f"🎮 TicTacToe Game\n{view.current_player.mention}'s turn!"
             await interaction.response.edit_message(content=content, view=view)
 
-class TicTacToeView(discord.ui.View):
+class TicTacToeView(nextcord.ui.View):
     X = -1
     O = 1
     Tie = 2
 
-    def __init__(self, player1: discord.Member, player2: discord.Member):
+    def __init__(self, player1: nextcord.Member, player2: nextcord.Member):
         super().__init__(timeout=300)
         self.player1 = player1
         self.player2 = player2
@@ -136,9 +136,8 @@ class TicTacToe(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="tictactoe", description="Start a TicTacToe game with another player")
-    @app_commands.describe(opponent="The player you want to challenge")
-    async def tictactoe(self, interaction: discord.Interaction, opponent: discord.Member):
+    @nextcord.slash_command(description="Start a TicTacToe game with another player")
+    async def tictactoe(self, interaction: nextcord.Interaction, opponent: nextcord.Member):
         # Validation checks
         if opponent == interaction.user:
             await interaction.response.send_message("❌ You can't play against yourself!", ephemeral=True)
@@ -161,11 +160,11 @@ class TicTacToe(commands.Cog):
         view.message = await interaction.original_response()
 
     @tictactoe.error
-    async def tictactoe_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
-        if isinstance(error, app_commands.MissingPermissions):
+    async def tictactoe_error(self, interaction: nextcord.Interaction, error):
+        if hasattr(error, 'code') and error.code == 50013:  # Missing permissions
             await interaction.response.send_message("❌ You don't have permission to use this command!", ephemeral=True)
         else:
             await interaction.response.send_message("❌ An error occurred while starting the game!", ephemeral=True)
 
 async def setup(bot):
-    await bot.add_cog(TicTacToe(bot))
+    bot.add_cog(TicTacToe(bot))

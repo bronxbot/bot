@@ -1,6 +1,6 @@
 # Performance monitoring command for admins
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import time
 import datetime
 import psutil
@@ -21,9 +21,9 @@ class Performance(commands.Cog):
     @commands.is_owner()
     async def health_check(self, ctx):
         """Comprehensive bot health check"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🏥 Bot Health Report",
-            color=discord.Color.blue(),
+            color=nextcord.Color.blue(),
             timestamp=datetime.datetime.now()
         )
         
@@ -67,7 +67,7 @@ class Performance(commands.Cog):
             db_health = await db.health_check()
             
             status_emoji = "✅" if db_health["connection"] else "❌"
-            status_color = discord.Color.green() if db_health["connection"] else discord.Color.red()
+            status_color = nextcord.Color.green() if db_health["connection"] else nextcord.Color.red()
             embed.color = status_color
             
             db_status = f"{status_emoji} **Status:** {db_health['status'].title()}\n"
@@ -159,10 +159,10 @@ class Performance(commands.Cog):
     @commands.is_owner()
     async def optimize_database(self, ctx):
         """Run database optimization"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔧 Database Optimization",
             description="Running optimization...",
-            color=discord.Color.orange()
+            color=nextcord.Color.orange()
         )
         
         message = await ctx.reply(embed=embed)
@@ -171,7 +171,7 @@ class Performance(commands.Cog):
             result = await db.optimize_database()
             
             if result["success"]:
-                embed.color = discord.Color.green()
+                embed.color = nextcord.Color.green()
                 embed.description = "✅ Optimization completed successfully!"
                 
                 results = result["results"]
@@ -183,11 +183,11 @@ class Performance(commands.Cog):
                     inline=False
                 )
             else:
-                embed.color = discord.Color.red()
+                embed.color = nextcord.Color.red()
                 embed.description = f"❌ Optimization failed: {result['error']}"
             
         except Exception as e:
-            embed.color = discord.Color.red()
+            embed.color = nextcord.Color.red()
             embed.description = f"❌ Error during optimization: {e}"
         
         await message.edit(embed=embed)
@@ -196,9 +196,9 @@ class Performance(commands.Cog):
     @commands.is_owner()
     async def detailed_metrics(self, ctx):
         """Show detailed performance metrics"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📊 Detailed Metrics",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         # Command usage stats
@@ -273,9 +273,9 @@ class Performance(commands.Cog):
             if not stats or stats['total_uses'] == 0:
                 return await ctx.reply(f"❌ No statistics found for command `{command_name}`")
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"📊 Command Statistics: {command_name}",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             
             embed.add_field(
@@ -311,9 +311,9 @@ class Performance(commands.Cog):
             if not top_commands:
                 return await ctx.reply("❌ No command usage statistics available yet.")
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📊 Command Usage Statistics",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             
             # Split into groups of 5 for better readability
@@ -344,9 +344,9 @@ class Performance(commands.Cog):
         try:
             metrics = self.bot.scalability_manager.get_metrics()
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🚀 Scalability Manager Status",
-                color=discord.Color.blue(),
+                color=nextcord.Color.blue(),
                 timestamp=datetime.datetime.now()
             )
             
@@ -422,4 +422,4 @@ class Performance(commands.Cog):
             await ctx.reply(f"❌ Error getting scalability metrics: {e}")
 
 async def setup(bot):
-    await bot.add_cog(Performance(bot))
+    bot.add_cog(Performance(bot))

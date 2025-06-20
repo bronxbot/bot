@@ -3,8 +3,8 @@ Prefix Manager
 Handles server prefix management functionality.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import List
 
 from utils.db import AsyncDatabase
@@ -22,7 +22,7 @@ class PrefixManager:
 
     async def show_prefixes(self, ctx):
         """Show prefix management interface"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📌 Prefix Management",
             description=(
                 "Manage bot prefixes for this server\n\n"
@@ -58,7 +58,7 @@ class PrefixManager:
         prefixes.append(prefix)
         await db.update_guild_settings(ctx.guild.id, {"prefixes": prefixes})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Prefix Added",
             description=f"Added prefix: `{prefix}`",
             color=0x2ecc71
@@ -90,7 +90,7 @@ class PrefixManager:
         prefixes.remove(prefix)
         await db.update_guild_settings(ctx.guild.id, {"prefixes": prefixes})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Prefix Removed",
             description=f"Removed prefix: `{prefix}`",
             color=0x2ecc71
@@ -111,7 +111,7 @@ class PrefixManager:
         if isinstance(prefixes, str):
             prefixes = [prefixes]
 
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📌 Server Prefixes",
             color=0x3498db
         )

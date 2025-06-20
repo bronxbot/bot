@@ -1,7 +1,7 @@
 """
 Economy utility functions and helpers
 """
-import discord
+import nextcord
 import asyncio
 from typing import Optional, Tuple, Dict, Any
 from utils.db import db
@@ -39,9 +39,9 @@ def format_currency(amount: int) -> str:
     """Format currency amount with proper formatting"""
     return f"{amount:,} {CURRENCY}"
 
-def format_balance_embed(user: discord.Member, economy_data: Dict[str, Any], requester: Optional[discord.Member] = None) -> discord.Embed:
+def format_balance_embed(user: nextcord.Member, economy_data: Dict[str, Any], requester: Optional[nextcord.Member] = None) -> nextcord.Embed:
     """Create a formatted balance embed"""
-    embed = discord.Embed(
+    embed = nextcord.Embed(
         description=(
             f"💵 Wallet: **{economy_data['wallet']:,}** {CURRENCY}\n"
             f"🏦 Bank: **{economy_data['bank']:,}**/**{economy_data['bank_limit']:,}** {CURRENCY}\n"
@@ -134,9 +134,9 @@ async def calculate_interest(user_id: int, guild_id: int) -> Tuple[int, float]:
     
     return interest, rate
 
-def create_deposit_help_embed(wallet: int, bank_space: int) -> discord.Embed:
+def create_deposit_help_embed(wallet: int, bank_space: int) -> nextcord.Embed:
     """Create help embed for deposit command"""
-    return discord.Embed(
+    return nextcord.Embed(
         description=(
             "**BronkBuks Bank Deposit Guide**\n\n"
             f"Your Wallet: **{wallet:,}** {CURRENCY}\n"
@@ -154,9 +154,9 @@ def create_deposit_help_embed(wallet: int, bank_space: int) -> discord.Embed:
         color=0x2b2d31
     )
 
-def create_withdraw_help_embed(wallet: int, bank: int) -> discord.Embed:
+def create_withdraw_help_embed(wallet: int, bank: int) -> nextcord.Embed:
     """Create help embed for withdraw command"""
-    return discord.Embed(
+    return nextcord.Embed(
         description=(
             "**BronkBuks Bank Withdrawal Guide**\n\n"
             f"Your Bank: **{bank:,}** {CURRENCY}\n"
@@ -227,9 +227,9 @@ async def create_leaderboard_data(guild_id: int, limit: int = 10) -> list:
     except Exception:
         return []
 
-async def format_leaderboard_embed(leaderboard: list, guild: discord.Guild, page: int = 1, bot=None) -> discord.Embed:
+async def format_leaderboard_embed(leaderboard: list, guild: nextcord.Guild, page: int = 1, bot=None) -> nextcord.Embed:
     """Format leaderboard data into an embed"""
-    embed = discord.Embed(
+    embed = nextcord.Embed(
         title=f"💰 {guild.name} Economy Leaderboard",
         color=0xffd700
     )

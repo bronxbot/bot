@@ -1,8 +1,8 @@
 # Economy Settings
 # Handles server-specific economy configuration, custom shops, and economy toggles
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import Optional, List, Dict, Union
 import json
 from utils.db import AsyncDatabase
@@ -23,7 +23,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def economy_settings(self, ctx):
         """Economy settings management"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💰 Economy Settings",
             description=(
                 "Configure economy settings for this server\n\n"
@@ -45,7 +45,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         eco_settings = settings.get('economy', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💰 Economy Settings Overview",
             color=0xf1c40f
         )
@@ -107,7 +107,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
         
         if enabled is None:
             current_status = server_economy.get('enabled', False)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🏦 Server Economy Status",
                 color=0xf1c40f
             )
@@ -140,7 +140,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
             # Initialize server economy data if needed
             await self._initialize_server_economy(ctx.guild.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Server Economy Enabled",
                 description=(
                     "Server-specific economy has been enabled!\n\n"
@@ -156,7 +156,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
                 color=0x2ecc71
             )
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Server Economy Disabled",
                 description=(
                     "Server-specific economy has been disabled.\n"
@@ -171,7 +171,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def economy_config(self, ctx):
         """Configure economy settings"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⚙️ Economy Configuration",
             description="Configure various economy settings",
             color=0xf1c40f
@@ -203,7 +203,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
         eco_settings['server_economy'] = server_economy
         await db.update_guild_settings(ctx.guild.id, {'economy': eco_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Starting Balance Updated",
             description=f"New users will now start with {amount} coins!",
             color=0x2ecc71
@@ -225,7 +225,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
         eco_settings['server_economy'] = server_economy
         await db.update_guild_settings(ctx.guild.id, {'economy': eco_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Currency Symbol Updated",
             description=f"Currency symbol set to: {symbol}",
             color=0x2ecc71
@@ -237,7 +237,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def shop_settings(self, ctx):
         """Manage server shop settings"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🛒 Server Shop Management",
             description="Configure custom shop items for your server",
             color=0xf1c40f
@@ -263,7 +263,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
         shop_settings = settings.get('economy', {}).get('shop', {})
         custom_items = shop_settings.get('custom_items', [])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🛒 Server Shop Items",
             color=0xf1c40f
         )
@@ -291,7 +291,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def add_shop_item(self, ctx):
         """Add a custom item to the server shop (Interactive)"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🛒 Add Shop Item",
             description="Let's create a custom shop item for your server!",
             color=0xf1c40f
@@ -385,7 +385,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
             await db.update_guild_settings(ctx.guild.id, {'economy': eco_settings})
             
             # Confirmation
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Shop Item Added!",
                 description=f"Successfully added **{item_name}** to the server shop!",
                 color=0x2ecc71
@@ -434,7 +434,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
         eco_settings['shop'] = shop_settings
         await db.update_guild_settings(ctx.guild.id, {'economy': eco_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Shop Item Removed",
             description=f"Successfully removed **{item_to_remove['name']}** from the server shop!",
             color=0x2ecc71
@@ -446,7 +446,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def rewards_settings(self, ctx):
         """Configure economy rewards"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎁 Economy Rewards Configuration",
             description="Configure how users earn coins in your server",
             color=0xf1c40f
@@ -471,7 +471,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         rewards = settings.get('economy', {}).get('rewards', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎁 Current Reward Settings",
             color=0xf1c40f
         )
@@ -518,7 +518,7 @@ class EconomySettings(commands.Cog, ErrorHandler):
         eco_settings['rewards'] = rewards
         await db.update_guild_settings(ctx.guild.id, {'economy': eco_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Daily Reward Updated",
             description=f"Daily reward set to {amount} coins!",
             color=0x2ecc71
@@ -567,4 +567,4 @@ class EconomySettings(commands.Cog, ErrorHandler):
         await self.handle_error(ctx, error, "economy settings")
 
 async def setup(bot):
-    await bot.add_cog(EconomySettings(bot))
+    bot.add_cog(EconomySettings(bot))

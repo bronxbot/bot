@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 import random
 import asyncio
 import uuid
@@ -335,7 +335,7 @@ class AutoFishing(commands.Cog):
             user_data = await db.db.users.find_one({"_id": str(ctx.author.id)})
             autofisher_data = user_data.get("autofisher", {}) if user_data else {}
             
-            embed = discord.Embed(title="🤖 Autofisher System", color=0x2b2d31)
+            embed = nextcord.Embed(title="🤖 Autofisher System", color=0x2b2d31)
             
             if not autofisher_data or not autofisher_data.get("count", 0):
                 embed.description = "You don't have any autofishers yet!"
@@ -387,7 +387,7 @@ class AutoFishing(commands.Cog):
                 embed.add_field(name="Next Autofisher Cost", value=f"{next_cost:,} {self.currency}", inline=False)
                 
                 # Create view with buy button
-                view = discord.ui.View(timeout=60.0)
+                view = nextcord.ui.View(timeout=60.0)
                 
                 async def buy_callback(interaction):
                     if interaction.user.id != ctx.author.id:
@@ -430,9 +430,9 @@ class AutoFishing(commands.Cog):
                     else:
                         await interaction.response.send_message("❌ Failed to purchase autofisher!", ephemeral=True)
                 
-                buy_button = discord.ui.Button(
+                buy_button = nextcord.ui.Button(
                     label=f"Buy Autofisher #{count + 1:,}", 
-                    style=discord.ButtonStyle.green,
+                    style=nextcord.ButtonStyle.green,
                     emoji="🤖"
                 )
                 buy_button.callback = buy_callback
@@ -519,10 +519,10 @@ class AutoFishing(commands.Cog):
                 new_balance = updated_data.get("autofisher", {}).get("balance", 0)
                 total_deposited = updated_data.get("autofisher", {}).get("total_deposited", 0)
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="✅ Deposit Successful!",
                     description=f"Deposited **{amount:,}** {self.currency} into autofisher",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
                 embed.add_field(name="New Balance", value=f"{new_balance:,} {self.currency}", inline=True)
                 embed.add_field(name="Total Deposited", value=f"{total_deposited:,} {self.currency}", inline=True)
@@ -571,10 +571,10 @@ class AutoFishing(commands.Cog):
             
             if result.modified_count > 0:
                 if await db.update_wallet(ctx.author.id, total_value):
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="🤖 Auto-Fish Collection",
                         description=f"Sold {len(auto_fish):,} auto-caught fish for **{total_value:,}** {self.currency}",
-                        color=discord.Color.green()
+                        color=nextcord.Color.green()
                     )
                     await safe_reply(ctx, embed=embed)
                 else:
@@ -596,7 +596,7 @@ class AutoFishing(commands.Cog):
             user_data = await db.db.users.find_one({"_id": str(ctx.author.id)})
             autofisher_data = user_data.get("autofisher", {}) if user_data else {}
             
-            embed = discord.Embed(title="🤖 Autofisher Status", color=0x2b2d31)
+            embed = nextcord.Embed(title="🤖 Autofisher Status", color=0x2b2d31)
             
             if not autofisher_data or not autofisher_data.get("count", 0):
                 embed.description = "You don't have any autofishers!"
@@ -817,7 +817,7 @@ class AutoFishing(commands.Cog):
             current_rod = autofisher_data.get("active_rod", "advanced_rod")
             current_bait = autofisher_data.get("active_bait", "pro_bait")
             
-            embed = discord.Embed(title="🎣 Autofisher Configuration", color=0x2b2d31)
+            embed = nextcord.Embed(title="🎣 Autofisher Configuration", color=0x2b2d31)
             embed.add_field(name="Active Rod", value=current_rod.replace('_', ' ').title(), inline=True)
             embed.add_field(name="Active Bait", value=current_bait.replace('_', ' ').title(), inline=True)
             
@@ -851,7 +851,7 @@ class AutoFishing(commands.Cog):
         if rod_type:
             resolved_rod = self._resolve_rod_alias(rod_type)
             if not resolved_rod:
-                embed = discord.Embed(title="❌ Invalid Rod Type", color=0xff0000)
+                embed = nextcord.Embed(title="❌ Invalid Rod Type", color=0xff0000)
                 embed.add_field(
                     name="Available Rods", 
                     value=", ".join(self.available_rods), 
@@ -869,7 +869,7 @@ class AutoFishing(commands.Cog):
         if bait_type:
             resolved_bait = self._resolve_bait_alias(bait_type)
             if not resolved_bait:
-                embed = discord.Embed(title="❌ Invalid Bait Type", color=0xff0000)
+                embed = nextcord.Embed(title="❌ Invalid Bait Type", color=0xff0000)
                 embed.add_field(
                     name="Available Baits", 
                     value=", ".join(self.available_baits), 
@@ -913,7 +913,7 @@ class AutoFishing(commands.Cog):
         )
         
         if result.modified_count > 0 or result.upserted_id:
-            embed = discord.Embed(title="✅ Configuration Updated", color=0x00ff00)
+            embed = nextcord.Embed(title="✅ Configuration Updated", color=0x00ff00)
             if rod_type:
                 embed.add_field(name="Active Rod", value=rod_type.replace('_', ' ').title(), inline=True)
             if bait_type:
@@ -937,9 +937,9 @@ class AutoFishing(commands.Cog):
             bag_limit = self.get_bag_limit(total_deposited)
             can_catch = await self.can_catch_fish(ctx.author.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🧪 Bag System Test",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             
             embed.add_field(name="Total Deposited", value=f"{total_deposited:,} {self.currency}", inline=True)
@@ -962,4 +962,4 @@ class AutoFishing(commands.Cog):
             await safe_reply(ctx, f"❌ Test failed: {e}")
 
 async def setup(bot):
-    await bot.add_cog(AutoFishing(bot))
+    bot.add_cog(AutoFishing(bot))

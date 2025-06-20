@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import json
 import redis
-from discord.ext import commands
-import discord
+from nextcord.ext import commands
+import nextcord
 
 class RateLimitManager:
     """Advanced rate limiting and request queuing system"""
@@ -110,7 +110,7 @@ class RateLimitManager:
                 
                 return result
                 
-            except discord.HTTPException as e:
+            except nextcord.HTTPException as e:
                 # Handle rate limits
                 if e.status == 429:
                     retry_after = float(e.response.headers.get('Retry-After', 1))

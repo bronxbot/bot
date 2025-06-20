@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import datetime
 from cogs.logging.logger import CogLogger
 
@@ -75,13 +75,13 @@ class SyncRoles(commands.Cog):
         """Helper function to get member object in a specific guild"""
         try:
             return await guild.fetch_member(member_id)
-        except discord.NotFound:
+        except nextcord.NotFound:
             self.logger.info(f"Member {member_id} not found in guild {guild.id}")
             return None
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             self.logger.warning(f"Missing permissions to fetch members in guild {guild.id}")
             return None
-        except discord.HTTPException as e:
+        except nextcord.HTTPException as e:
             self.logger.error(f"Error fetching member {member_id} in guild {guild.id}: {e}")
             return None
     
@@ -182,9 +182,9 @@ class SyncRoles(commands.Cog):
             try:
                 await target_member.edit(roles=new_role_objects)
                 self.logger.info(f"Successfully synced roles for {target_member} in {target_server}")
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 self.logger.error(f"Missing permissions to edit roles in {target_server}")
-            except discord.HTTPException as e:
+            except nextcord.HTTPException as e:
                 self.logger.error(f"Error syncing roles in {target_server}: {e}")
 
     @commands.Cog.listener()
@@ -198,9 +198,9 @@ class SyncRoles(commands.Cog):
         if before.roles != after.roles:
             await self.sync_roles(after, after.guild)
     
-    @commands.command(name="forcesync", aliases=["sync"])
+    @commands.command(name="forcesync", aliases=["syncroles"])
     @commands.has_permissions(administrator=True)
-    async def force_sync(self, ctx, member: discord.Member):
+    async def force_sync(self, ctx, member: nextcord.Member):
         """Force sync a member's roles across servers"""
         await self.sync_roles(member, ctx.guild)
         await ctx.send(f"Force-synced roles for {member.display_name}")
@@ -208,7 +208,7 @@ class SyncRoles(commands.Cog):
 async def setup(bot):
     logger = CogLogger("SyncRoles")
     try:
-        await bot.add_cog(SyncRoles(bot))
+        bot.add_cog(SyncRoles(bot))
     except Exception as e:
         logger.error(f"Failed to load SyncRoles cog: {e}")
         raise

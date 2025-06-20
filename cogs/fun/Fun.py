@@ -1,7 +1,7 @@
-import discord
+import nextcord
 import random
 import json
-from discord.ext import commands
+from nextcord.ext import commands
 import logging
 import asyncio
 import string
@@ -23,14 +23,14 @@ class Fun(commands.Cog, ErrorHandler):
         self.active_games = set()
         self.logger = CogLogger(self.__class__.__name__)
 
-    def get_command_help(self) -> list[discord.Embed]:
+    def get_command_help(self) -> list[nextcord.Embed]:
         """Get paginated help embeds for this cog"""
         pages = []
         
         # Game Commands Page
-        games_embed = discord.Embed(
+        games_embed = nextcord.Embed(
             title="🎲 Fun Commands - Games",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         game_commands = ['guess', 'typingtest']
         for cmd_name in game_commands:
@@ -44,9 +44,9 @@ class Fun(commands.Cog, ErrorHandler):
         pages.append(games_embed)
 
         # Utility Fun Commands Page
-        util_embed = discord.Embed(
+        util_embed = nextcord.Embed(
             title="🎲 Fun Commands - Utilities",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         util_commands = ['pick', 'ball8', 'flip', 'roll']
         for cmd_name in util_commands:
@@ -60,9 +60,9 @@ class Fun(commands.Cog, ErrorHandler):
         pages.append(util_embed)
 
         # ASCII & Visual Commands Page
-        visual_embed = discord.Embed(
+        visual_embed = nextcord.Embed(
             title="🎲 Fun Commands - Visual",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         visual_commands = ['ascii', 'fireworks', 'tableflip']
         for cmd_name in visual_commands:
@@ -252,9 +252,9 @@ class Fun(commands.Cog, ErrorHandler):
 
             start = time.time()
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"⌨️ Type this exactly:\n```{disguised_sentence}```\n`{difficulty.title()} | 60s limit`\n*Copy-paste won't work!*",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             await ctx.reply(embed=embed)
             
@@ -308,13 +308,13 @@ class Fun(commands.Cog, ErrorHandler):
                     grade = "Keep practicing! 💪"
                 
                 # Results embed
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"📊 **Results**\n\n"
                                 f"Time: `{elapsed:.2f}s`\n"
                                 f"Speed: `{wpm:.1f}` WPM\n"
                                 f"Accuracy: `{accuracy:.1f}%`\n"
                                 f"Grade: `{grade_percent:.1f}%` - {grade}",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
                 await ctx.reply(embed=embed)
                 
@@ -326,7 +326,7 @@ class Fun(commands.Cog, ErrorHandler):
 
     # Fun interaction commands
     @commands.command(aliases=['ship'])
-    async def lovecalc(self, ctx, user1: discord.Member, user2: discord.Member = None):
+    async def lovecalc(self, ctx, user1: nextcord.Member, user2: nextcord.Member = None):
         """calculate love compatibility percentage"""
         user2 = user2 or ctx.author
         
@@ -355,7 +355,7 @@ class Fun(commands.Cog, ErrorHandler):
         await ctx.reply(f"💘 ```{user1.display_name} {emoji} {user2.display_name}\ncompatibility: {score}%\n{comment}```")
 
     @commands.command()
-    async def hack(self, ctx, user: discord.Member):
+    async def hack(self, ctx, user: nextcord.Member):
         """totally real hacking simulator (joke command)"""
         if user == ctx.author:
             return await ctx.reply("```you can't hack yourself... or can you? 🤔```")
@@ -440,16 +440,16 @@ class Fun(commands.Cog, ErrorHandler):
         try:
             await ctx.author.send(f"🔐 Your generated password: ```{password}```")
             await ctx.reply("```password sent to your DMs for security!```")
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             await ctx.reply("```couldn't DM you! enable DMs from server members```")
 
     @commands.command()
     async def cooldown(self, ctx):
         """check command cooldowns"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⏰ Active Games",
             description="Games you're currently playing:",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         if ctx.author.id in self.active_games:
@@ -489,7 +489,7 @@ class Fun(commands.Cog, ErrorHandler):
 async def setup(bot):
     try:
         logger = CogLogger("Fun")
-        await bot.add_cog(Fun(bot))
+        bot.add_cog(Fun(bot))
     except Exception as e:
         logger.error(f"Failed to load Fun cog: {e}")
         raise e

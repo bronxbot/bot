@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from utils.error_handler import ErrorHandler
 from .help_paginator import HelpPaginator
@@ -9,9 +9,9 @@ import json
 
 logger = CogLogger('Help')
 
-with open('data/config.json', 'r') as f:
-    data = json.load(f)
-BOT_ADMINS = data['OWNER_IDS']
+# Load configuration from environment variables
+import os
+BOT_ADMINS = os.getenv('DISCORD_BOT_OWNER_IDS', '').split(',') if os.getenv('DISCORD_BOT_OWNER_IDS') else []
 
 class Help(commands.Cog, ErrorHandler):
     def __init__(self, bot):
@@ -27,7 +27,7 @@ class Help(commands.Cog, ErrorHandler):
         """Get the bot's invite link & support server."""
         self.logger.info(f"Invite link requested by {ctx.author}")
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔗 Invite BronxBot",
             description=(
                 "**Bot Invite Link:**\n"
@@ -45,10 +45,10 @@ class Help(commands.Cog, ErrorHandler):
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         await ctx.reply(embed=embed)
 
-    @discord.app_commands.command(name="invite", description="Get the bot's invite link and support server")
-    async def invite_slash(self, interaction: discord.Interaction):
+    @nextcord.slash_command(description="Get the bot's invite link and support server")
+    async def invite(self, interaction: nextcord.Interaction):
         """Slash command version of invite"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔗 Invite BronxBot",
             description=(
                 "**Bot Invite Link:**\n"
@@ -66,7 +66,7 @@ class Help(commands.Cog, ErrorHandler):
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         await interaction.response.send_message(embed=embed)
 
-    @commands.command(name='help', aliases=['h', 'commands', 'cmds'])
+    @commands.command(name='help', aliases=['h', 'cmds'])
     async def help(self, ctx, *, command_or_cog: str = None):
         """
         Show help information for commands and cogs
@@ -147,4 +147,4 @@ class Help(commands.Cog, ErrorHandler):
 
 async def setup(bot):
     """Setup function for the Help cog"""
-    await bot.add_cog(Help(bot))
+    bot.add_cog(Help(bot))

@@ -3,11 +3,11 @@ Performance Manager
 Handles system performance monitoring and tracking.
 """
 
-import discord
+import nextcord
 import psutil
 import time
 from datetime import datetime, timedelta
-from discord.utils import utcnow
+from nextcord.utils import utcnow
 from typing import Dict, List, Optional
 
 from utils.db import db
@@ -161,7 +161,7 @@ class PerformanceManager:
             if not channel:
                 return
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🚨 Performance Alert",
                 description="\n".join(alerts),
                 color=COLORS['error'],
@@ -204,7 +204,7 @@ class PerformanceManager:
     async def test_performance_update(self, ctx):
         """Test the performance monitoring system"""
         try:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🔧 Performance Test",
                 description="Testing performance monitoring system...",
                 color=COLORS['info']
@@ -223,7 +223,7 @@ class PerformanceManager:
             save_time = round((time.time() - start_time) * 1000, 2)
             
             # Update embed with results
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Performance Test Complete",
                 color=COLORS['success']
             )

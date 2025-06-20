@@ -146,7 +146,7 @@ class BronxBot(commands.AutoShardedBot):
         logging.info("Bot shutdown complete")
 
 # setup
-intents = discord.Intents.all()
+intents = nextcord.Intents.all()
 intents.message_content = True
 
 # Load configuration from environment variables with fallback to config.json
@@ -158,19 +158,22 @@ def load_config():
     config = {}
     
     # Try environment variables first
+    owner_ids_env = os.getenv('DISCORD_BOT_OWNER_IDS', '')
+    owner_ids_list = [id.strip() for id in owner_ids_env.split(',') if id.strip()] if owner_ids_env else []
+    
     env_config = {
         'TOKEN': os.getenv('DISCORD_TOKEN'),
         'DEV_TOKEN': os.getenv('DISCORD_DEV_TOKEN'),
         'CLIENT_ID': os.getenv('DISCORD_CLIENT_ID'),
         'CLIENT_SECRET': os.getenv('DISCORD_CLIENT_SECRET'),
-        'OWNER_ID': os.getenv('DISCORD_BOT_OWNER_ID'),
+        'OWNER_ID': owner_ids_list[0] if owner_ids_list else '',  # First owner as primary
         'MONGO_URI': os.getenv('MONGO_URI'),
         'GUILD_COUNT': int(os.getenv('GUILD_COUNT', 75)),
         'lastfm_api_key': os.getenv('LASTFM_API_KEY', ''),
         'lastfm_api_secret': os.getenv('LASTFM_API_SECRET', ''),
         'DEV': os.getenv('DEV', 'false').lower() == 'true',
         'OWNER_REPLY': [os.getenv('OWNER_REPLY', 'REPLY')],
-        'OWNER_IDS': [os.getenv('DISCORD_BOT_OWNER_ID', '')]
+        'OWNER_IDS': owner_ids_list
     }
     
     # Use environment variables if they exist, otherwise fall back to config.json
@@ -181,6 +184,9 @@ def load_config():
         try:
             with open("data/config.json", "r") as f:
                 config = json.load(f)
+                # Ensure OWNER_IDS is a list
+                if 'OWNER_IDS' in config and isinstance(config['OWNER_IDS'], list):
+                    config['OWNER_IDS'] = [str(id) for id in config['OWNER_IDS']]
                 logging.warning("Configuration loaded from config.json - consider using environment variables for security")
         except FileNotFoundError:
             logging.error("No configuration found! Please set environment variables or create data/config.json")
@@ -191,12 +197,19 @@ def load_config():
 config = load_config()
 dev = config.get('DEV', False)
 
+# Convert owner IDs to integers and filter out empty ones
+owner_ids = set()
+for owner_id in config.get("OWNER_IDS", []):
+    if owner_id and owner_id.isdigit():
+        owner_ids.add(int(owner_id))
+
 bot = BronxBot(
     command_prefix='.',
     intents=intents,
     shard_count=math.ceil(config["GUILD_COUNT"]/20),
     case_insensitive=True,
-    application_id=config["CLIENT_ID"]
+    application_id=int(config["CLIENT_ID"]) if config.get("CLIENT_ID") and config["CLIENT_ID"].isdigit() else None,
+    owner_ids=owner_ids
 )
 bot.remove_command('help')
 

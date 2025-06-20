@@ -3,9 +3,9 @@ General Settings Cog
 Main cog for general server settings management.
 """
 
-import discord
-from discord.ext import commands
-from discord import app_commands
+import nextcord
+from nextcord.ext import commands
+# from nextcord import app_commands  # Not available in nextcord
 from typing import Optional, List, Union
 
 from utils.db import AsyncDatabase
@@ -42,7 +42,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def general_settings(self, ctx):
         """General server settings management"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔧 General Server Settings",
             description=(
                 "Configure general bot behavior for this server\n\n"
@@ -83,7 +83,7 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         whitelist = settings.get('command_whitelist', {})
         blacklist = settings.get('command_blacklist', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔧 General Settings Overview",
             color=0x3498db
         )
@@ -166,12 +166,12 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             await ctx.send("Please specify `role` or `user`")
 
     @add_permission.command(name='role')
-    async def add_role_permission(self, ctx, role: discord.Role):
+    async def add_role_permission(self, ctx, role: nextcord.Role):
         """Add a role to settings management permissions"""
         await self.permission_manager.add_role_permission(ctx, role)
 
     @add_permission.command(name='user')
-    async def add_user_permission(self, ctx, user: discord.Member):
+    async def add_user_permission(self, ctx, user: nextcord.Member):
         """Add a user to settings management permissions"""
         await self.permission_manager.add_user_permission(ctx, user)
 
@@ -182,12 +182,12 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             await ctx.send("Please specify `role` or `user`")
 
     @remove_permission.command(name='role')
-    async def remove_role_permission(self, ctx, role: discord.Role):
+    async def remove_role_permission(self, ctx, role: nextcord.Role):
         """Remove a role from settings management permissions"""
         await self.permission_manager.remove_role_permission(ctx, role)
 
     @remove_permission.command(name='user')
-    async def remove_user_permission(self, ctx, user: discord.Member):
+    async def remove_user_permission(self, ctx, user: nextcord.Member):
         """Remove a user from settings management permissions"""
         await self.permission_manager.remove_user_permission(ctx, user)
 
@@ -204,12 +204,12 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         await self.whitelist_manager.view_whitelist(ctx)
 
     @whitelist_settings.command(name='channel')
-    async def whitelist_channel(self, ctx, channel: discord.TextChannel, *, command: str):
+    async def whitelist_channel(self, ctx, channel: nextcord.TextChannel, *, command: str):
         """Whitelist a command for a specific channel"""
         await self.whitelist_manager.whitelist_channel(ctx, channel, command)
 
     @whitelist_settings.command(name='role')
-    async def whitelist_role(self, ctx, role: discord.Role, *, command: str):
+    async def whitelist_role(self, ctx, role: nextcord.Role, *, command: str):
         """Whitelist a command for a specific role"""
         await self.whitelist_manager.whitelist_role(ctx, role, command)
 
@@ -220,12 +220,12 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             await ctx.send("Please specify `channel`, `role`, or `user`")
 
     @remove_whitelist.command(name='channel')
-    async def remove_whitelist_channel(self, ctx, channel: discord.TextChannel, *, command: str):
+    async def remove_whitelist_channel(self, ctx, channel: nextcord.TextChannel, *, command: str):
         """Remove channel whitelist for a command"""
         await self.whitelist_manager.remove_whitelist_channel(ctx, channel, command)
 
     @remove_whitelist.command(name='role')
-    async def remove_whitelist_role(self, ctx, role: discord.Role, *, command: str):
+    async def remove_whitelist_role(self, ctx, role: nextcord.Role, *, command: str):
         """Remove role whitelist for a command"""
         await self.whitelist_manager.remove_whitelist_role(ctx, role, command)
 
@@ -242,17 +242,17 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         await self.blacklist_manager.view_blacklist(ctx)
 
     @blacklist_settings.command(name='channel')
-    async def blacklist_channel(self, ctx, channel: discord.TextChannel, *, command: str):
+    async def blacklist_channel(self, ctx, channel: nextcord.TextChannel, *, command: str):
         """Blacklist a command for a specific channel"""
         await self.blacklist_manager.blacklist_channel(ctx, channel, command)
 
     @blacklist_settings.command(name='role')
-    async def blacklist_role(self, ctx, role: discord.Role, *, command: str):
+    async def blacklist_role(self, ctx, role: nextcord.Role, *, command: str):
         """Blacklist a command for a specific role"""
         await self.blacklist_manager.blacklist_role(ctx, role, command)
 
     @blacklist_settings.command(name='user')
-    async def blacklist_user(self, ctx, user: discord.Member, *, command: str):
+    async def blacklist_user(self, ctx, user: nextcord.Member, *, command: str):
         """Blacklist a command for a specific user"""
         await self.blacklist_manager.blacklist_user(ctx, user, command)
 
@@ -263,17 +263,17 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             await ctx.send("Please specify `channel`, `role`, or `user`")
 
     @remove_blacklist.command(name='channel')
-    async def remove_blacklist_channel(self, ctx, channel: discord.TextChannel, *, command: str):
+    async def remove_blacklist_channel(self, ctx, channel: nextcord.TextChannel, *, command: str):
         """Remove channel blacklist for a command"""
         await self.blacklist_manager.remove_blacklist_channel(ctx, channel, command)
 
     @remove_blacklist.command(name='role')
-    async def remove_blacklist_role(self, ctx, role: discord.Role, *, command: str):
+    async def remove_blacklist_role(self, ctx, role: nextcord.Role, *, command: str):
         """Remove role blacklist for a command"""
         await self.blacklist_manager.remove_blacklist_role(ctx, role, command)
 
     @remove_blacklist.command(name='user')
-    async def remove_blacklist_user(self, ctx, user: discord.Member, *, command: str):
+    async def remove_blacklist_user(self, ctx, user: nextcord.Member, *, command: str):
         """Remove user blacklist for a command"""
         await self.blacklist_manager.remove_blacklist_user(ctx, user, command)
 
@@ -296,12 +296,12 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             await ctx.send("Please specify `role` or `user`")
 
     @add_ignore.command(name='role')
-    async def add_ignore_role(self, ctx, role: discord.Role):
+    async def add_ignore_role(self, ctx, role: nextcord.Role):
         """Add a role to the ignore list"""
         await self.ignore_manager.add_ignore_role(ctx, role)
 
     @add_ignore.command(name='user')
-    async def add_ignore_user(self, ctx, user: discord.Member):
+    async def add_ignore_user(self, ctx, user: nextcord.Member):
         """Add a user to the ignore list"""
         await self.ignore_manager.add_ignore_user(ctx, user)
 
@@ -312,12 +312,12 @@ class GeneralSettings(commands.Cog, ErrorHandler):
             await ctx.send("Please specify `role` or `user`")
 
     @remove_ignore.command(name='role')
-    async def remove_ignore_role(self, ctx, role: discord.Role):
+    async def remove_ignore_role(self, ctx, role: nextcord.Role):
         """Remove a role from the ignore list"""
         await self.ignore_manager.remove_ignore_role(ctx, role)
 
     @remove_ignore.command(name='user')
-    async def remove_ignore_user(self, ctx, user: discord.Member):
+    async def remove_ignore_user(self, ctx, user: nextcord.Member):
         """Remove a user from the ignore list"""
         await self.ignore_manager.remove_ignore_user(ctx, user)
 
@@ -331,4 +331,4 @@ class GeneralSettings(commands.Cog, ErrorHandler):
         await self.handle_error(ctx, error, "general settings")
 
 async def setup(bot):
-    await bot.add_cog(GeneralSettings(bot))
+    bot.add_cog(GeneralSettings(bot))

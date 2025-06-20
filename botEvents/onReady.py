@@ -11,6 +11,7 @@ async def on_ready():
         logging.info("Loading cogs...")
         success_count, error_count = await CogLoader.load_all_cogs(bot)
         logging.info(f"Loaded {success_count} cogs with {error_count} errors")
+        
     except Exception as e:
         logging.error(f"Error during cog loading: {e}")
         traceback.print_exc()
@@ -41,14 +42,38 @@ async def on_ready():
     # Load additional cogs manually
     try:
         # Load TOS handler
-        await bot.load_extension('utils.tos_handler')
+        bot.load_extension('utils.tos_handler')
         logging.info("TOS handler loaded successfully")
         
         # Load Setup wizard
-        await bot.load_extension('cogs.setup.SetupWizard') 
+        bot.load_extension('cogs.setup.SetupWizard') 
         logging.info("Setup wizard loaded successfully")
+        
+        # Load SlashCommandManager
+        bot.load_extension('cogs.utility.SlashCommandManager')
+        logging.info("SlashCommandManager loaded successfully")
+        
+        # Load SlashCommands cog
+        bot.load_extension('cogs.admin.SlashCommands')
+        logging.info("SlashCommands cog loaded successfully")
     except Exception as e:
         logging.error(f"Failed to load additional cogs: {e}")
+
+    # Auto-sync slash commands for main guilds
+    try:
+        if hasattr(bot, 'MAIN_GUILD_IDS'):
+            for guild_id in bot.MAIN_GUILD_IDS:
+                try:
+                    synced = await bot.sync_application_commands(guild_id=guild_id)
+                    guild = bot.get_guild(guild_id)
+                    guild_name = guild.name if guild else f"ID:{guild_id}"
+                    logging.info(f"Auto-synced {len(synced)} slash commands to {guild_name}")
+                except Exception as e:
+                    logging.warning(f"Failed to auto-sync slash commands to guild {guild_id}: {e}")
+        else:
+            logging.info("No MAIN_GUILD_IDS found, skipping auto-sync")
+    except Exception as e:
+        logging.error(f"Error during auto-sync of slash commands: {e}")
 
     # Initialize database and clean up corrupted inventory data
     try:
@@ -75,8 +100,8 @@ async def on_ready():
     
     # Update presence
     await bot.change_presence(
-        activity=discord.Activity(
-            type=discord.ActivityType.playing,
+        activity=nextcord.Activity(
+            type=nextcord.ActivityType.playing,
             name=f"with {len(bot.guilds)} servers | .help"
         )
     )
@@ -102,9 +127,9 @@ async def on_ready():
                           for cog, time in sorted(bot.cog_load_times.items())])
             )
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=boot_info,
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
             await message.edit(embed=embed)
         except Exception as e:
@@ -118,8 +143,8 @@ async def on_ready():
     )
     print(status_msg)"""
     
-    activity = discord.Activity(
-        type=discord.ActivityType.playing,
+    activity = nextcord.Activity(
+        type=nextcord.ActivityType.playing,
         name=f"with {len(bot.guilds)} servers | .help"
     )
     await bot.change_presence(activity=activity)
@@ -132,3 +157,17 @@ async def on_ready():
     if not reset_daily_stats.is_running():
         reset_daily_stats.start()
         logging.info("Started daily stats reset loop")
+        
+    # Debug: Check slash commands after everything is fully loaded
+    await asyncio.sleep(2)  # Give a moment for all initializations to complete
+    logging.info("=== FINAL SLASH COMMAND CHECK ===")
+    all_commands = bot.get_all_application_commands()
+    logging.info(f"Total application commands registered: {len(all_commands)}")
+    
+    for cmd in all_commands:
+        guild_info = getattr(cmd, 'guild_ids', None) or 'Global'
+        logging.info(f"• {cmd.name} (Type: {type(cmd).__name__}, Guild: {guild_info})")
+    
+    if not all_commands:
+        logging.warning("No application commands found! This might be why sync shows 0 commands.")
+    logging.info("=====================================")

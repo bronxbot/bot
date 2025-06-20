@@ -8,4 +8,4 @@ from .bazaar import Bazaar
 
 async def setup(bot):
     """Setup function for the bazaar cog"""
-    await bot.add_cog(Bazaar(bot))
+    bot.add_cog(Bazaar(bot))

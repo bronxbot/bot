@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from utils.error_handler import ErrorHandler
 from cogs.logging.logger import CogLogger
 
@@ -8,7 +8,7 @@ def setup(bot): # setup function like this every time you make a standalone comm
     @commands.has_permissions(manage_guild=True)
     async def settings(ctx):
         """Command used to access all settings categories."""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔧 Settings",
             description=(
                 "Access all settings for the bot\n\n"
@@ -27,7 +27,7 @@ def setup(bot): # setup function like this every time you make a standalone comm
     @commands.has_permissions(manage_guild=True)
     async def test(ctx):
         """Test command(NOT FOR USERS)"""
-        message = discord.message(
+        message = nextcord.message(
             message=("hi")
         )
         await ctx.send(message=message)

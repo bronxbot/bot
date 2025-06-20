@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import Dict, Any, List, Callable, Optional
 import asyncio
 import datetime
@@ -10,7 +10,7 @@ from cogs.logging.logger import CogLogger
 class SetupWizard:
     """Interactive setup wizard system"""
     
-    def __init__(self, bot, user: discord.Member, guild: discord.Guild):
+    def __init__(self, bot, user: nextcord.Member, guild: nextcord.Guild):
         self.bot = bot
         self.user = user
         self.guild = guild
@@ -24,11 +24,11 @@ class SetupWizard:
         if not ctx.author.guild_permissions.administrator:
             return await ctx.reply("❌ You need Administrator permissions to run server setup!")
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🛠️ Server Setup Wizard",
             description="Welcome to the BronxBot setup wizard! I'll help you configure your server.\n"
                        "You can type `cancel` at any time to stop the setup.",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         embed.add_field(
@@ -69,10 +69,10 @@ class SetupWizard:
     
     async def run_user_setup(self, ctx):
         """Run the user setup wizard"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="👋 Welcome to BronxBot!",
             description="Let's get you set up! This will only take a minute.",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         
         embed.add_field(
@@ -129,10 +129,10 @@ class SetupWizard:
     # Server Setup Steps
     async def _setup_welcome(self, ctx, message):
         """Setup welcome messages"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📝 Welcome Messages Setup",
             description="Would you like to enable welcome messages for new members?",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         embed.add_field(
@@ -211,10 +211,10 @@ class SetupWizard:
     
     async def _setup_moderation(self, ctx, message):
         """Setup moderation features"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🛡️ Moderation Setup",
             description="Configure moderation features for your server.",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         embed.add_field(
@@ -253,10 +253,10 @@ class SetupWizard:
     
     async def _setup_economy(self, ctx, message):
         """Setup economy system"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💰 Economy Setup",
             description="Configure the economy system for your server.",
-            color=discord.Color.gold()
+            color=nextcord.Color.gold()
         )
         
         embed.add_field(
@@ -296,10 +296,10 @@ class SetupWizard:
     
     async def _setup_prefix(self, ctx, message):
         """Setup custom prefix"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⚙️ Command Prefix Setup",
             description=f"Current prefix: `.`\n\nWould you like to change the command prefix?",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         embed.add_field(
@@ -324,10 +324,10 @@ class SetupWizard:
     
     async def _setup_autorole(self, ctx, message):
         """Setup auto-role"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎭 Auto-Role Setup",
             description="Would you like to automatically assign a role to new members?",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         embed.add_field(
@@ -362,7 +362,7 @@ class SetupWizard:
                     pass
             else:
                 # Search by name
-                role = discord.utils.get(ctx.guild.roles, name=role_response)
+                role = nextcord.utils.get(ctx.guild.roles, name=role_response)
             
             if role:
                 self.responses['autorole'] = {'enabled': True, 'role': role.id}
@@ -391,10 +391,10 @@ class SetupWizard:
         
         await db.update_guild_settings(ctx.guild.id, settings)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Setup Complete!",
             description="Your server has been successfully configured!",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         
         summary = []
@@ -427,10 +427,10 @@ class SetupWizard:
     # User Setup Steps
     async def _user_timezone(self, ctx, message):
         """Set user timezone"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🌍 Timezone Setup",
             description="What's your timezone? This helps with time-based features.",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         embed.add_field(
@@ -458,10 +458,10 @@ class SetupWizard:
     
     async def _user_privacy(self, ctx, message):
         """Set privacy preferences"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔒 Privacy Settings",
             description="Configure your privacy preferences.",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         embed.add_field(
@@ -489,10 +489,10 @@ class SetupWizard:
     
     async def _user_economy_prefs(self, ctx, message):
         """Set economy preferences"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💰 Economy Preferences",
             description="Configure your economy settings.",
-            color=discord.Color.gold()
+            color=nextcord.Color.gold()
         )
         
         embed.add_field(
@@ -520,10 +520,10 @@ class SetupWizard:
     
     async def _user_notifications(self, ctx, message):
         """Set notification preferences"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔔 Notification Settings",
             description="Choose what notifications you'd like to receive.",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         embed.add_field(
@@ -569,10 +569,10 @@ class SetupWizard:
             upsert=True
         )
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎉 Welcome to BronxBot!",
             description="Your account has been set up successfully!",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         
         summary = [
@@ -603,28 +603,28 @@ class SetupWizard:
     # Error and utility methods
     async def _setup_cancelled(self, message):
         """Handle setup cancellation"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="❌ Setup Cancelled",
             description="Setup has been cancelled. You can run the setup again anytime!",
-            color=discord.Color.red()
+            color=nextcord.Color.red()
         )
         await message.edit(embed=embed)
     
     async def _setup_timeout(self, message):
         """Handle setup timeout"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⏰ Setup Timed Out",
             description="Setup has timed out due to inactivity. You can run it again anytime!",
-            color=discord.Color.orange()
+            color=nextcord.Color.orange()
         )
         await message.edit(embed=embed)
     
     async def _setup_error(self, message, error):
         """Handle setup error"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="❌ Setup Error",
             description=f"An error occurred during setup: {error}\n\nPlease try again or contact support.",
-            color=discord.Color.red()
+            color=nextcord.Color.red()
         )
         await message.edit(embed=embed)
 
@@ -666,10 +666,10 @@ class Setup(commands.Cog):
         
         await db.update_guild_settings(ctx.guild.id, settings)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⚡ Quick Setup Complete!",
             description="Your server has been configured with sensible defaults!",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         
         embed.add_field(
@@ -691,4 +691,4 @@ class Setup(commands.Cog):
         await ctx.reply(embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(Setup(bot))
+    bot.add_cog(Setup(bot))

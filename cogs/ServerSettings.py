@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from utils.db import db
 from cogs.logging.logger import CogLogger
 from utils.error_handler import ErrorHandler
@@ -24,7 +24,7 @@ class ServerSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def settings(self, ctx):
         """⚠️ DEPRECATED - Use the new modular settings system"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="⚠️ Settings System Updated!",
             description=(
                 "The server settings have been upgraded to a comprehensive modular system!\n\n"
@@ -48,10 +48,10 @@ class ServerSettings(commands.Cog, ErrorHandler):
         """View legacy server settings (for migration purposes)"""
         settings = await db.get_guild_settings(ctx.guild.id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="Legacy Server Settings (Read-Only)",
             description="This shows your old settings. Use the new modular commands to configure.",
-            color=discord.Color.orange()
+            color=nextcord.Color.orange()
         )
         
         # Prefixes
@@ -125,10 +125,10 @@ class ServerSettings(commands.Cog, ErrorHandler):
             settings = await db.get_guild_settings(ctx.guild.id)
             welcome = settings.get("welcome", {})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="Welcome Settings",
                 description=f"Status: {'✅' if welcome.get('enabled') else '❌'}",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             
             embed.add_field(
@@ -229,8 +229,8 @@ class ServerSettings(commands.Cog, ErrorHandler):
                     "server": ctx.guild.name,
                     "server_icon": str(ctx.guild.icon.url) if ctx.guild.icon else None,
                     "member_count": str(ctx.guild.member_count),
-                    "created_at": discord.utils.format_dt(ctx.author.created_at, style="R"),
-                    "joined_at": discord.utils.format_dt(ctx.author.joined_at, style="R") if ctx.author.joined_at else "N/A"
+                    "created_at": nextcord.utils.format_dt(ctx.author.created_at, style="R"),
+                    "joined_at": nextcord.utils.format_dt(ctx.author.joined_at, style="R") if ctx.author.joined_at else "N/A"
                 }
 
                 def replace_vars(text):
@@ -243,7 +243,7 @@ class ServerSettings(commands.Cog, ErrorHandler):
                     import re
                     emoji_pattern = r'\{emoji:(.*?)\}'
                     for emoji_name in re.findall(emoji_pattern, text):
-                        emoji = discord.utils.get(ctx.guild.emojis, name=emoji_name)
+                        emoji = nextcord.utils.get(ctx.guild.emojis, name=emoji_name)
                         if emoji:
                             text = text.replace(f"{{emoji:{emoji_name}}}", str(emoji))
                     return text
@@ -259,7 +259,7 @@ class ServerSettings(commands.Cog, ErrorHandler):
                     return d
 
                 embed_data = process_dict(embed_data)
-                embed = discord.Embed.from_dict(embed_data)
+                embed = nextcord.Embed.from_dict(embed_data)
                 await ctx.send(embed=embed)
             except Exception as e:
                 await ctx.send(f"Error displaying embed: {str(e)}")
@@ -283,4 +283,4 @@ class ServerSettings(commands.Cog, ErrorHandler):
             await self.handle_error(ctx, error, "prefix")
 
 async def setup(bot):
-    await bot.add_cog(ServerSettings(bot))
+    bot.add_cog(ServerSettings(bot))

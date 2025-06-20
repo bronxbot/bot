@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import logging
 import json
 import os
@@ -7,9 +7,15 @@ import random
 import sys
 import datetime
 from utils.error_handler import ErrorHandler
+import os
 
-with open("data/config.json", "r") as f:
-    config = json.load(f)
+# Load config from environment variables
+config = {
+    'OWNER_IDS': os.getenv('DISCORD_BOT_OWNER_IDS', '').split(',') if os.getenv('DISCORD_BOT_OWNER_IDS') else [],
+    'CLIENT_ID': os.getenv('DISCORD_CLIENT_ID', ''),
+    'TOKEN': os.getenv('DISCORD_TOKEN', ''),
+    'GUILD_COUNT': int(os.getenv('GUILD_COUNT', '0'))
+}
 
 class ModMail(commands.Cog, ErrorHandler):
     def __init__(self, bot):
@@ -66,21 +72,21 @@ class ModMail(commands.Cog, ErrorHandler):
         if message.author.bot:
             return        
         # Handle DM messages
-        if isinstance(message.channel, discord.DMChannel):
+        if isinstance(message.channel, nextcord.DMChannel):
             if str(message.author.id) not in self.active_tickets:
                 # Check for a simple "help" message
                 if message.content.lower().strip() == "help":
                     if not await self.can_use_modmail(message.author):
-                        embed = discord.Embed(
+                        embed = nextcord.Embed(
                             description="Sorry, ModMail is only available to members of our servers.",
-                            color=discord.Color.red()
+                            color=nextcord.Color.red()
                         )
                     elif await self.can_use_modmail(message.author) and len(message.content) > 10:
                         await self.create_new_modmail(message)
                     else:
-                        embed = discord.Embed(
+                        embed = nextcord.Embed(
                             description="To create a modmail ticket, send a message containing your issue.\nExample: `I need help with...`",
-                            color=discord.Color.blue()
+                            color=nextcord.Color.blue()
                         )
                     await message.author.send(embed=embed)
 
@@ -88,7 +94,7 @@ class ModMail(commands.Cog, ErrorHandler):
                 await self.forward_to_thread(message)
         
         # Handle staff replies in threads
-        elif (isinstance(message.channel, discord.Thread) and 
+        elif (isinstance(message.channel, nextcord.Thread) and 
               message.channel.parent_id == self.staff_channel_id and
               not message.author.bot) and message.content[0] != ".":
             await self.handle_staff_reply(message)
@@ -180,7 +186,7 @@ class ModMail(commands.Cog, ErrorHandler):
             except Exception as debug_e:
                 self.logger.debug(f"Failed to gather debug info: {debug_e}")
     
-    async def can_use_modmail(self, user: discord.User) -> bool:
+    async def can_use_modmail(self, user: nextcord.User) -> bool:
         """Check if user is in any of the allowed guilds"""
         for guild_id in self.allowed_guilds:
             guild = self.bot.get_guild(guild_id)
@@ -193,10 +199,10 @@ class ModMail(commands.Cog, ErrorHandler):
         try:
             # Check if user is allowed to use modmail
             if not await self.can_use_modmail(user_message.author):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="Access Denied",
                     description="You must be a member of one of our servers to use ModMail.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await user_message.author.send(embed=embed)
                 return
@@ -210,7 +216,7 @@ class ModMail(commands.Cog, ErrorHandler):
             if str(user_message.author.id) in self.active_tickets:
                 return
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"New Modmail from {user_message.author}",
                 description=user_message.content,
                 color=0x00ff00
@@ -233,7 +239,7 @@ class ModMail(commands.Cog, ErrorHandler):
             self.active_tickets[str(user_message.author.id)] = thread.id
             self.save_data()  # Make sure to save after updating
             
-            user_embed = discord.Embed(
+            user_embed = nextcord.Embed(
                 title="Modmail Received",
                 description="Your message has been received by our staff team. "
                             "Please wait for a response. You can send additional "
@@ -265,7 +271,7 @@ class ModMail(commands.Cog, ErrorHandler):
                 self.save_data()
                 return
                 
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=user_message.content,
                 color=0x7289da,
                 timestamp=user_message.created_at
@@ -287,7 +293,7 @@ class ModMail(commands.Cog, ErrorHandler):
             msg = await thread.send(embed=embed)
             await msg.add_reaction("✅")
             
-        except discord.NotFound:
+        except nextcord.NotFound:
             self.logger.error(f"Thread {thread_id} not found (404)")
             del self.active_tickets[str(user_message.author.id)]
             self.save_data()
@@ -345,7 +351,7 @@ class ModMail(commands.Cog, ErrorHandler):
             if not user:
                 return
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=staff_message.content,
                 color=0x7289da,
                 timestamp=staff_message.created_at
@@ -370,7 +376,7 @@ class ModMail(commands.Cog, ErrorHandler):
             await user.send(embed=embed)
             await staff_message.add_reaction("✅")
             
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             await staff_message.add_reaction("❌")
             await staff_message.channel.send("Failed to send message to user (user has DMs disabled)")
         except Exception as e:
@@ -415,7 +421,7 @@ class ModMail(commands.Cog, ErrorHandler):
     async def close_modmail(self, ctx):
         """Close the current modmail thread"""
         try:
-            if not isinstance(ctx.channel, discord.Thread):
+            if not isinstance(ctx.channel, nextcord.Thread):
                 await ctx.send("This command can only be used in modmail threads")
                 return
                 
@@ -429,14 +435,14 @@ class ModMail(commands.Cog, ErrorHandler):
                 user = self.bot.get_user(int(user_id))
                 if user:
                     try:
-                        embed = discord.Embed(
+                        embed = nextcord.Embed(
                             title="Modmail Closed",
                             description="This modmail ticket has been closed by staff. "
                                       "If you have further questions, please open a new one.",
                             color=0xff0000
                         )
                         await user.send(embed=embed)
-                    except discord.HTTPException:
+                    except nextcord.HTTPException:
                         pass
                 
                 del self.active_tickets[user_id]
@@ -449,7 +455,7 @@ class ModMail(commands.Cog, ErrorHandler):
                     starter_message = await parent_channel.fetch_message(ctx.channel.id)
                     if starter_message and starter_message.embeds:
                         original_embed = starter_message.embeds[0]
-                        edited_embed = discord.Embed.from_dict(original_embed.to_dict())
+                        edited_embed = nextcord.Embed.from_dict(original_embed.to_dict())
                         edited_embed.color = 0xff0000
                         await starter_message.edit(embed=edited_embed)
             except Exception as e:
@@ -481,10 +487,10 @@ class ModMail(commands.Cog, ErrorHandler):
                 if not stats:
                     return await ctx.reply("📊 No ModMail statistics found for this server.")
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="📧 ModMail Statistics",
                     description=f"**Server:** {ctx.guild.name}",
-                    color=discord.Color.blue()
+                    color=nextcord.Color.blue()
                 )
                 
                 embed.add_field(
@@ -539,7 +545,7 @@ class ModMail(commands.Cog, ErrorHandler):
 async def setup(bot):
     """Setup function for the cog"""
     try:
-        await bot.add_cog(ModMail(bot))
+        bot.add_cog(ModMail(bot))
     except Exception as e:
         print(f"Failed to load ModMail cog: {e}")
         raise

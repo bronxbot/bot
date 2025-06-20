@@ -1,8 +1,8 @@
 """
 Main Work Cog - Commands and core functionality
 """
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import time
 import asyncio
 from typing import Dict, Any, Optional, Tuple
@@ -70,7 +70,7 @@ class Work(commands.Cog):
         """Manage your job and career"""
         user_job = await get_user_job(ctx.author.id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💼 Job Management",
             description="Manage your career and employment status:",
             color=0x2ecc71
@@ -117,7 +117,7 @@ class Work(commands.Cog):
             minutes = (cooldown_remaining % 3600) // 60
             seconds = cooldown_remaining % 60
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⏰ Work Cooldown",
                 description=f"You need to wait **{hours}h {minutes}m {seconds}s** before working again.",
                 color=0xf39c12
@@ -128,7 +128,7 @@ class Work(commands.Cog):
         # Check if user has a job
         user_job = await get_user_job(ctx.author.id)
         if not user_job:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🚫 No Job",
                 description="You need a job first! Use `!job` to choose one.",
                 color=0xe74c3c
@@ -141,7 +141,7 @@ class Work(commands.Cog):
         minigame_class = get_minigame_class(user_job['job_id'])
         minigame_view = minigame_class(self, user_job, ctx.author.id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"{job_info['emoji']} Time to Work!",
             description=f"**Job:** {job_info['name']}\n**Task:** {job_info['description']}\n\nChoose your approach:",
             color=0x3498db
@@ -155,7 +155,7 @@ class Work(commands.Cog):
         # Check if user already has a job
         current_job = await get_user_job(ctx.author.id)
         if current_job:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Already Employed",
                 description=f"You already work as a **{current_job['job_info']['name']}**!\nUse `!leavejob` first if you want to change jobs.",
                 color=0xff0000
@@ -165,7 +165,7 @@ class Work(commands.Cog):
 
         if not job_name:
             # Show job selection interface
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="💼 Available Jobs",
                 description=get_job_list_embed_description(),
                 color=0x0099ff
@@ -185,7 +185,7 @@ class Work(commands.Cog):
                 break
 
         if not selected_job_id:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Job Not Found",
                 description=f"No job found matching '{job_name}'. Use `!choosejob` to see available jobs.",
                 color=0xff0000
@@ -197,7 +197,7 @@ class Work(commands.Cog):
         success = await set_user_job(ctx.author.id, selected_job_id)
         if success:
             job_info = JOBS[selected_job_id]
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎉 Job Acquired!",
                 description=f"Congratulations! You're now employed as a **{job_info['name']}**!",
                 color=0x00ff00
@@ -213,7 +213,7 @@ class Work(commands.Cog):
                 inline=False
             )
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Error",
                 description="Failed to assign job. Please try again.",
                 color=0xff0000
@@ -226,7 +226,7 @@ class Work(commands.Cog):
         """Leave your current job"""
         user_job = await get_user_job(ctx.author.id)
         if not user_job:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ No Job",
                 description="You don't have a job to leave!",
                 color=0xff0000
@@ -236,7 +236,7 @@ class Work(commands.Cog):
 
         success = await remove_user_job(ctx.author.id)
         if success:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="👋 Job Left",
                 description=f"You have left your position as a **{user_job['job_info']['name']}**.",
                 color=0x00ff00
@@ -247,7 +247,7 @@ class Work(commands.Cog):
                 inline=False
             )
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Error",
                 description="Failed to leave job. Please try again.",
                 color=0xff0000
@@ -260,7 +260,7 @@ class Work(commands.Cog):
         """Check your job status and boss relationship"""
         user_job = await get_user_job(ctx.author.id)
         if not user_job:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Unemployed",
                 description="You don't have a job! Use `!choosejob` to get started.",
                 color=0xff0000
@@ -277,7 +277,7 @@ class Work(commands.Cog):
         min_wage = calculate_wage(job_info, user_job['boss_hostile'], user_job['boss_loyalty'])
         max_wage = calculate_wage(job_info, user_job['boss_hostile'], user_job['boss_loyalty'])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"{job_info['emoji']} Your Job Status",
             description=f"**Position:** {job_info['name']}\n**Description:** {job_info['description']}",
             color=0x00ff00
@@ -329,7 +329,7 @@ class Work(commands.Cog):
         """Ask your boss for a raise (increases loyalty, might increase hostility)"""
         user_job = await get_user_job(ctx.author.id)
         if not user_job:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ No Job",
                 description="You need a job to ask for a raise!",
                 color=0xff0000
@@ -341,7 +341,7 @@ class Work(commands.Cog):
         can_raise, cooldown_remaining = await self.can_ask_raise(ctx.author.id)
         if not can_raise:
             hours = cooldown_remaining // 3600
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⏰ Raise Cooldown",
                 description=f"You recently asked for a raise. Wait **{hours}** hours before asking again.",
                 color=0xf39c12
@@ -366,7 +366,7 @@ class Work(commands.Cog):
             await update_boss_relationship(ctx.author.id, hostility_change, loyalty_gain)
             await update_raise_timestamp(ctx.author.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎉 Raise Approved!",
                 description="Your boss approved your raise request!",
                 color=0x00ff00
@@ -384,7 +384,7 @@ class Work(commands.Cog):
             await update_boss_relationship(ctx.author.id, hostility_gain, -loyalty_loss)
             await update_raise_timestamp(ctx.author.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Raise Denied",
                 description="Your boss denied your raise request and seems annoyed.",
                 color=0xff0000
@@ -402,7 +402,7 @@ class Work(commands.Cog):
         """Give a gift to your boss to improve relationship"""
         user_job = await get_user_job(ctx.author.id)
         if not user_job:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ No Job",
                 description="You need a job to give gifts to your boss!",
                 color=0xff0000
@@ -413,7 +413,7 @@ class Work(commands.Cog):
         # Show gift options through the boss relations view
         from .work_views import BossRelationsView
         view = BossRelationsView(ctx.author.id, user_job)
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎁 Boss Gift Shop",
             description="Choose a gift to improve your relationship with your boss:",
             color=0x0099ff
@@ -424,7 +424,7 @@ class Work(commands.Cog):
     @commands.command(name="joblist", aliases=["jobs", "careers", "jobslist"])
     async def job_list_command(self, ctx):
         """List all available jobs"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💼 Available Careers",
             description=get_job_list_embed_description(),
             color=0x0099ff
@@ -437,7 +437,7 @@ class Work(commands.Cog):
         """View your coworkers"""
         user_job = await get_user_job(ctx.author.id)
         if not user_job:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ No Job",
                 description="You need a job to have coworkers!",
                 color=0xff0000
@@ -449,7 +449,7 @@ class Work(commands.Cog):
         job_info = user_job['job_info']
         
         if not coworkers:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="👥 No Coworkers",
                 description=f"You're the only {job_info['name']} currently employed!",
                 color=0x0099ff
@@ -460,7 +460,7 @@ class Work(commands.Cog):
                 username = coworker['username'] or f"User {coworker['id']}"
                 coworker_list.append(f"{i}. {username}")
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"👥 Your {job_info['name']} Coworkers",
                 description="\n".join(coworker_list),
                 color=0x0099ff
@@ -470,5 +470,5 @@ class Work(commands.Cog):
         view = CoworkersView(ctx.author.id, user_job['job_id'])
         await safe_reply(ctx, embed=embed, view=view)
 
-def setup(bot):
+async def setup(bot):
     bot.add_cog(Work(bot))

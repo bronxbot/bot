@@ -8,4 +8,4 @@ from .work import Work
 
 async def setup(bot):
     """Setup function for the work cog"""
-    await bot.add_cog(Work(bot))
+    bot.add_cog(Work(bot))

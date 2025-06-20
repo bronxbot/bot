@@ -1,11 +1,11 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from utils.db import db
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
 from typing import Optional, Dict, List, Union
 import os
 import json
-from discord.ui import Button, View, Select, Modal, TextInput
+from nextcord.ui import Button, View, Select, Modal, TextInput
 
 # Load shop data from JSON files
 def load_shop_data():
@@ -30,9 +30,9 @@ def load_shop_data():
 # Load shop data at module level
 SHOP_DATA = load_shop_data()
 
-class BuyModal(Modal, title="Purchase Confirmation"):
+class BuyModal(Modal):
     def __init__(self, item: Dict, max_amount: int, currency: str, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(title="Purchase Confirmation", *args, **kwargs)
         self.item = item
         self.max_amount = max_amount
         self.currency = currency
@@ -47,7 +47,7 @@ class BuyModal(Modal, title="Purchase Confirmation"):
         
         self.add_item(self.amount)
     
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: nextcord.Interaction):
         try:
             amount = int(self.amount.value)
             if amount <= 0:
@@ -61,10 +61,10 @@ class BuyModal(Modal, title="Purchase Confirmation"):
             return
         
         total_price = self.item['price'] * amount
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="Purchase Successful!",
             description=f"You bought {amount}x **{self.item['name']}** for {total_price}{self.currency}",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
         self.stop()
@@ -78,7 +78,7 @@ class ShopItemButton(Button):
         self.label = item['name']
         self.emoji = "🛒" if item['type'] == 'potion' else "💰"
         
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         max_amount = self.user_balance // self.item['price'] if self.item['price'] > 0 else 1
         if max_amount <= 0:
             await interaction.response.send_message("You can't afford this item!", ephemeral=True)
@@ -104,16 +104,16 @@ class ShopItemButton(Button):
 class ShopTypeSelect(Select):
     def __init__(self, cog, *args, **kwargs):
         options = [
-            discord.SelectOption(label="Fishing Rods", value="rod", description="Upgrade your fishing gear", emoji="🎣"),
-            discord.SelectOption(label="Baits", value="bait", description="Better bait for better catches", emoji="🪱"),
-            discord.SelectOption(label="Items", value="item", description="Various useful items", emoji="📦"),
-            discord.SelectOption(label="Upgrades", value="upgrade", description="Permanent account upgrades", emoji="⬆️"),
-            discord.SelectOption(label="Potions", value="potion", description="Temporary boosts and effects", emoji="🧪"),
+            nextcord.SelectOption(label="Fishing Rods", value="rod", description="Upgrade your fishing gear", emoji="🎣"),
+            nextcord.SelectOption(label="Baits", value="bait", description="Better bait for better catches", emoji="🪱"),
+            nextcord.SelectOption(label="Items", value="item", description="Various useful items", emoji="📦"),
+            nextcord.SelectOption(label="Upgrades", value="upgrade", description="Permanent account upgrades", emoji="⬆️"),
+            nextcord.SelectOption(label="Potions", value="potion", description="Temporary boosts and effects", emoji="🧪"),
         ]
         super().__init__(placeholder="Select a shop type...", options=options, *args, **kwargs)
         self.cog = cog
     
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         await self.cog.display_shop(interaction, self.values[0])
 
 class ShopView(View):
@@ -130,18 +130,18 @@ class ShopView(View):
         self.add_item(ShopTypeSelect(cog))
         
         # Add navigation buttons
-        self.add_item(Button(style=discord.ButtonStyle.blurple, emoji="⬅️", custom_id="prev_page"))
-        self.add_item(Button(style=discord.ButtonStyle.blurple, emoji="➡️", custom_id="next_page"))
+        self.add_item(Button(style=nextcord.ButtonStyle.blurple, emoji="⬅️", custom_id="prev_page"))
+        self.add_item(Button(style=nextcord.ButtonStyle.blurple, emoji="➡️", custom_id="next_page"))
         
         # Add item buttons for current page
         self.update_view()
 
-    def get_page_embed(self) -> discord.Embed:
+    def get_page_embed(self) -> nextcord.Embed:
         """Create an embed for the current page"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"{self.shop_type.capitalize()} Shop",
             description=f"Your balance: {self.user_balance}{self.cog.currency}\n\nPage {self.current_page + 1}/{(len(self.items) + self.items_per_page - 1) // self.items_per_page}",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         start_idx = self.current_page * self.items_per_page
@@ -178,10 +178,10 @@ class ShopView(View):
                 item=item,
                 currency=self.cog.currency,
                 user_balance=self.user_balance,
-                style=discord.ButtonStyle.green
+                style=nextcord.ButtonStyle.green
             ))
 
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, interaction: nextcord.Interaction) -> bool:
         if interaction.data.get("custom_id") in ["prev_page", "next_page"]:
             if interaction.data["custom_id"] == "prev_page":
                 if self.current_page > 0:
@@ -316,10 +316,10 @@ class Shop(commands.Cog):
         """Display the shop interface"""
         if not shop_type:
             # Show main shop menu
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="Shop Menu",
                 description=f"Select a shop type from the dropdown below!\n\nYour balance: {await self.get_wallet(ctx.author.id)}{self.currency}",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             view = View()
             view.add_item(ShopTypeSelect(self))
@@ -327,10 +327,10 @@ class Shop(commands.Cog):
         else:
             await self.display_shop(ctx, shop_type)
 
-    async def display_shop(self, interaction: Union[discord.Interaction, commands.Context], shop_type: str):
+    async def display_shop(self, interaction: Union[nextcord.Interaction, commands.Context], shop_type: str):
         """Display the shop for a specific type"""
         if shop_type not in self.supported_types:
-            if isinstance(interaction, discord.Interaction):
+            if isinstance(interaction, nextcord.Interaction):
                 await interaction.response.send_message("Invalid shop type!", ephemeral=True)
             else:
                 await interaction.send("Invalid shop type!")
@@ -338,20 +338,20 @@ class Shop(commands.Cog):
         
         items = self.get_shop_items(shop_type)
         if not items:
-            if isinstance(interaction, discord.Interaction):
+            if isinstance(interaction, nextcord.Interaction):
                 await interaction.response.send_message(f"No items found in the {shop_type} shop!", ephemeral=True)
             else:
                 await interaction.send(f"No items found in the {shop_type} shop!")
             return
         
         # Get the user ID correctly for both Interaction and Context objects
-        user_id = interaction.user.id if isinstance(interaction, discord.Interaction) else interaction.author.id
+        user_id = interaction.user.id if isinstance(interaction, nextcord.Interaction) else interaction.author.id
         user_balance = await self.get_wallet(user_id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"{shop_type.capitalize()} Shop",
             description=f"Your balance: {user_balance}{self.currency}\n\nSelect an item to purchase:",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         # Add items to embed (just for display, buttons will handle actual purchasing)
@@ -375,7 +375,7 @@ class Shop(commands.Cog):
         
         view = ShopView(self, shop_type, items, user_balance, timeout=180)
         
-        if isinstance(interaction, discord.Interaction):
+        if isinstance(interaction, nextcord.Interaction):
             await interaction.response.edit_message(embed=embed, view=view)
         else:
             await interaction.send(embed=embed, view=view)
@@ -384,10 +384,10 @@ class Shop(commands.Cog):
     async def buy(self, ctx, item_id: str = None, amount: int = 1):
         """Buy an item from the shop with better error handling"""
         if not item_id:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="Purchase Error",
                 description=f"Please specify an item ID! Use `{ctx.prefix}shop` to browse items.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
             return
@@ -409,10 +409,10 @@ class Shop(commands.Cog):
                     break
             
             if not item:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="Item Not Found",
                     description=f"Could not find item with ID `{item_id}`",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.send(embed=embed)
                 return
@@ -421,13 +421,13 @@ class Shop(commands.Cog):
             user_balance = await self.get_wallet(ctx.author.id)
             
             if user_balance < total_price:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="Insufficient Funds",
                     description=(
                         f"You need {total_price}{self.currency} but only have {user_balance}{self.currency}.\n"
                         f"Use `{ctx.prefix}daily` to get some free coins!"
                     ),
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.send(embed=embed)
                 return
@@ -446,41 +446,41 @@ class Shop(commands.Cog):
                 # For bait, show the actual amount of bait units they get
                 if item_type == "bait":
                     bait_units = item.get("amount", 1) * amount
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="Purchase Successful!",
                         description=f"You bought {amount}x {rarity_emoji} **{item['name']}** for {total_price}{self.currency}\n"
                                   f"Received {bait_units} bait units",
-                        color=discord.Color.green()
+                        color=nextcord.Color.green()
                     )
                 else:
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="Purchase Successful!",
                         description=f"You bought {amount}x {rarity_emoji} **{item['name']}** for {total_price}{self.currency}",
-                        color=discord.Color.green()
+                        color=nextcord.Color.green()
                     )
                 await ctx.send(embed=embed)
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="Purchase Failed",
                     description="There was an error processing your purchase. Please try again.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.send(embed=embed)
                 
         except ValueError:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="Invalid Amount",
                 description="Please enter a valid number for the amount.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
         except Exception as e:
             print(f"Error in buy command: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="Unexpected Error",
                 description="An unexpected error occurred. Please try again later.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.send(embed=embed)
 async def setup(bot):
-    await bot.add_cog(Shop(bot))
+    bot.add_cog(Shop(bot))

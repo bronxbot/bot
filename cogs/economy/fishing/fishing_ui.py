@@ -1,12 +1,12 @@
 # Fishing UI Components Module
 # Contains all Discord UI views and paginators for fishing system
 
-import discord
+import nextcord
 import math
 from utils.db import AsyncDatabase
 db = AsyncDatabase.get_instance()
 
-class FishInventoryPaginator(discord.ui.View):
+class FishInventoryPaginator(nextcord.ui.View):
     """Paginator for fish inventory with gear info on first page"""
     
     def __init__(self, user_id, user_fish, current_page, total_pages, currency, rod_data, bait_data, get_user_bait_func, timeout=300):
@@ -27,8 +27,8 @@ class FishInventoryPaginator(discord.ui.View):
         self.prev_button.disabled = self.total_pages <= 1
         self.next_button.disabled = self.total_pages <= 1
     
-    @discord.ui.button(label="⬅️", style=discord.ButtonStyle.secondary)
-    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.secondary)
+    async def prev_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
@@ -45,8 +45,8 @@ class FishInventoryPaginator(discord.ui.View):
         embed = await self.create_embed()
         await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="➡️", style=discord.ButtonStyle.secondary)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.secondary)
+    async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
@@ -67,7 +67,7 @@ class FishInventoryPaginator(discord.ui.View):
         """Create embed for current page"""
         if self.current_page == 1:
             # Gear page
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎣 Fishing Inventory",
                 description="Your fishing gear and statistics",
                 color=0x2b2d31
@@ -151,7 +151,7 @@ class FishInventoryPaginator(discord.ui.View):
             sorted_fish = sorted(self.user_fish, key=lambda x: x.get("value", 0), reverse=True)
             page_fish = sorted_fish[start_idx:end_idx]
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🐟 Fish Collection",
                 description=f"Your caught fish sorted by value",
                 color=0x2b2d31
@@ -175,7 +175,7 @@ class FishInventoryPaginator(discord.ui.View):
             embed.set_footer(text=f"Page {self.current_page}/{self.total_pages}")
             return embed
 
-class GlobalFishPaginator(discord.ui.View):
+class GlobalFishPaginator(nextcord.ui.View):
     """Paginator for global fish leaderboard"""
     
     def __init__(self, user_id, all_fish, current_page, total_pages, currency, timeout=300):
@@ -193,8 +193,8 @@ class GlobalFishPaginator(discord.ui.View):
         self.prev_button.disabled = self.total_pages <= 1
         self.next_button.disabled = self.total_pages <= 1
     
-    @discord.ui.button(label="⬅️", style=discord.ButtonStyle.secondary)
-    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.secondary)
+    async def prev_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if self.total_pages <= 1:
             return
         
@@ -208,8 +208,8 @@ class GlobalFishPaginator(discord.ui.View):
         embed = await self.create_embed()
         await interaction.response.edit_message(embed=embed, view=self)
 
-    @discord.ui.button(label="➡️", style=discord.ButtonStyle.secondary)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.secondary)
+    async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if self.total_pages <= 1:
             return
         
@@ -230,7 +230,7 @@ class GlobalFishPaginator(discord.ui.View):
         end_idx = start_idx + items_per_page
         page_fish = self.all_fish[start_idx:end_idx]
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🌍 Global Fish Leaderboard",
             description="Top catches from all players",
             color=0x2b2d31
@@ -254,7 +254,7 @@ class GlobalFishPaginator(discord.ui.View):
         embed.set_footer(text=f"Page {self.current_page}/{self.total_pages}")
         return embed
 
-class RodPaginator(discord.ui.View):
+class RodPaginator(nextcord.ui.View):
     """Paginator for rod inventory with equip functionality"""
     
     def __init__(self, user_id, user_rods, active_rod_id, fishing_cog, timeout=300):
@@ -287,8 +287,8 @@ class RodPaginator(discord.ui.View):
         rod_select.row = 1
         self.add_item(rod_select)
 
-    @discord.ui.button(label="⬅️", style=discord.ButtonStyle.secondary)
-    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.secondary)
+    async def prev_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
@@ -305,8 +305,8 @@ class RodPaginator(discord.ui.View):
         embed = await self.create_embed()
         await interaction.response.edit_message(embed=embed, view=self)
 
-    @discord.ui.button(label="➡️", style=discord.ButtonStyle.secondary)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.secondary)
+    async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
@@ -325,7 +325,7 @@ class RodPaginator(discord.ui.View):
     
     async def create_embed(self):
         """Create embed for current page"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎣 Rod Inventory",
             description="Select a rod to equip using the dropdown below",
             color=0x2b2d31
@@ -357,7 +357,7 @@ class RodPaginator(discord.ui.View):
         embed.set_footer(text=f"Page {self.current_page}/{self.total_pages}")
         return embed
 
-class RodSelect(discord.ui.Select):
+class RodSelect(nextcord.ui.Select):
     """Dropdown for selecting rod to equip"""
     
     def __init__(self, user_rods, active_rod_id, fishing_cog):
@@ -368,7 +368,7 @@ class RodSelect(discord.ui.Select):
             rod_id = rod.get('_id', 'unknown')
             is_active = rod_id == active_rod_id
             
-            options.append(discord.SelectOption(
+            options.append(nextcord.SelectOption(
                 label=rod.get('name', 'Unknown Rod'),
                 description=f"x{rod.get('multiplier', 1.0)} • {(rod.get('durability', 0.95) * 100):.1f}% durability",
                 value=rod_id,
@@ -377,7 +377,7 @@ class RodSelect(discord.ui.Select):
         
         super().__init__(placeholder="Choose a rod to equip...", options=options)
     
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         rod_id = self.values[0]
         
         if await self.fishing_cog.set_active_rod_manual(interaction.user.id, rod_id):
@@ -396,7 +396,7 @@ class RodSelect(discord.ui.Select):
                 ephemeral=True
             )
 
-class BaitPaginator(discord.ui.View):
+class BaitPaginator(nextcord.ui.View):
     """Paginator for bait inventory with equip functionality"""
     
     def __init__(self, user_id, user_bait, active_bait_id, fishing_cog, timeout=300):
@@ -429,8 +429,8 @@ class BaitPaginator(discord.ui.View):
         bait_select.row = 1
         self.add_item(bait_select)
     
-    @discord.ui.button(label="⬅️", style=discord.ButtonStyle.secondary)
-    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.secondary)
+    async def prev_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
@@ -447,8 +447,8 @@ class BaitPaginator(discord.ui.View):
         embed = await self.create_embed()
         await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="➡️", style=discord.ButtonStyle.secondary)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.secondary)
+    async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
@@ -467,7 +467,7 @@ class BaitPaginator(discord.ui.View):
     
     async def create_embed(self):
         """Create embed for current page"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🪱 Bait Inventory",
             description="Select bait to equip using the dropdown below",
             color=0x2b2d31
@@ -498,7 +498,7 @@ class BaitPaginator(discord.ui.View):
         embed.set_footer(text=f"Page {self.current_page}/{self.total_pages}")
         return embed
 
-class BaitSelect(discord.ui.Select):
+class BaitSelect(nextcord.ui.Select):
     """Dropdown for selecting bait to equip"""
     
     def __init__(self, user_bait, active_bait_id):
@@ -508,7 +508,7 @@ class BaitSelect(discord.ui.Select):
             bait_id = bait.get('_id', 'unknown')
             is_active = bait_id == active_bait_id
             
-            options.append(discord.SelectOption(
+            options.append(nextcord.SelectOption(
                 label=bait.get('name', 'Unknown Bait'),
                 description=f"{bait.get('rarity', 'Common').title()} • {bait.get('amount', 1)} remaining",
                 value=bait_id,
@@ -517,7 +517,7 @@ class BaitSelect(discord.ui.Select):
         
         super().__init__(placeholder="Choose bait to equip...", options=options)
     
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         bait_id = self.values[0]
         
         if await db.set_active_bait(interaction.user.id, bait_id):
@@ -543,7 +543,7 @@ class BaitSelect(discord.ui.Select):
                 ephemeral=True
             )
 
-class InteractiveFishSeller(discord.ui.View):
+class InteractiveFishSeller(nextcord.ui.View):
     """Interactive fish browser with sell buttons"""
     
     def __init__(self, user_id, user_fish, currency, selling_cog, timeout=300):
@@ -579,9 +579,9 @@ class InteractiveFishSeller(discord.ui.View):
         
         # Row 1: Individual fish sell buttons (up to 5 per page now)
         for i, fish in enumerate(page_fish[:5]):  # Increased to 5 since we have full row
-            button = discord.ui.Button(
+            button = nextcord.ui.Button(
                 label=f"Sell #{start_idx + i + 1}",
-                style=discord.ButtonStyle.red,
+                style=nextcord.ButtonStyle.red,
                 custom_id=f"sell_{fish.get('id', 'unknown')}",
                 row=1
             )
@@ -591,9 +591,9 @@ class InteractiveFishSeller(discord.ui.View):
         # Row 2: Bulk action buttons if we have fish
         if len(self.user_fish) > 0:
             # Sell all button
-            sell_all_button = discord.ui.Button(
+            sell_all_button = nextcord.ui.Button(
                 label="💸 Sell All Fish",
-                style=discord.ButtonStyle.danger,
+                style=nextcord.ButtonStyle.danger,
                 emoji="🐟",
                 row=2
             )
@@ -601,9 +601,9 @@ class InteractiveFishSeller(discord.ui.View):
             self.add_item(sell_all_button)
             
             # Refresh button to update rarity dropdown
-            refresh_button = discord.ui.Button(
+            refresh_button = nextcord.ui.Button(
                 label="🔄 Refresh",
-                style=discord.ButtonStyle.secondary,
+                style=nextcord.ButtonStyle.secondary,
                 emoji="🔄",
                 row=2
             )
@@ -618,7 +618,7 @@ class InteractiveFishSeller(discord.ui.View):
     
     def create_sell_callback(self, fish):
         """Create callback for sell button"""
-        async def sell_callback(interaction: discord.Interaction):
+        async def sell_callback(interaction: nextcord.Interaction):
             if interaction.user.id != self.user_id:
                 return await interaction.response.send_message("❌ This isn't your fish!", ephemeral=True)
             
@@ -641,7 +641,7 @@ class InteractiveFishSeller(discord.ui.View):
                     await interaction.response.edit_message(embed=embed, view=self)
                 else:
                     # No more fish
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="🐟 All Fish Sold!",
                         description="You've sold all your fish!",
                         color=0x00ff00
@@ -657,8 +657,8 @@ class InteractiveFishSeller(discord.ui.View):
         
         return sell_callback
     
-    @discord.ui.button(label="⬅️", style=discord.ButtonStyle.secondary, row=0)
-    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.secondary, row=0)
+    async def prev_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your fish!", ephemeral=True)
         
@@ -675,8 +675,8 @@ class InteractiveFishSeller(discord.ui.View):
         embed = await self.create_embed()
         await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="➡️", style=discord.ButtonStyle.secondary, row=0)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.secondary, row=0)
+    async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your fish!", ephemeral=True)
         
@@ -699,7 +699,7 @@ class InteractiveFishSeller(discord.ui.View):
         end_idx = start_idx + self.items_per_page
         page_fish = self.user_fish[start_idx:end_idx]
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💰 Interactive Fish Seller",
             description="• Click **Sell** buttons to sell individual fish\n• Use **💸 Sell All Fish** to sell everything\n• Use the dropdown to sell by rarity\n• Use **🔄 Refresh** to update the rarity dropdown\n• Navigate with ⬅️ ➡️ buttons",
             color=0x2b2d31
@@ -724,7 +724,7 @@ class InteractiveFishSeller(discord.ui.View):
         
         return embed
     
-    async def sell_all_fish(self, interaction: discord.Interaction):
+    async def sell_all_fish(self, interaction: nextcord.Interaction):
         """Sell all fish"""
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your fish market!", ephemeral=True)
@@ -739,7 +739,7 @@ class InteractiveFishSeller(discord.ui.View):
             if await db.clear_fish(self.user_id):
                 await db.add_currency(self.user_id, total_value)
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="🐟 All Fish Sold!",
                     description=f"Sold **{fish_count:,}** fish for **{total_value:,}** {self.currency}",
                     color=0x00ff00
@@ -767,7 +767,7 @@ class InteractiveFishSeller(discord.ui.View):
                 
                 # Clear the fish list and update view
                 self.user_fish = []
-                empty_embed = discord.Embed(
+                empty_embed = nextcord.Embed(
                     title="🐟 Fish Market",
                     description="✅ All fish sold! Your market is now empty.",
                     color=0x00ff00
@@ -783,7 +783,7 @@ class InteractiveFishSeller(discord.ui.View):
         except Exception as e:
             await interaction.response.send_message("❌ An error occurred while selling fish!", ephemeral=True)
     
-    async def refresh_view(self, interaction: discord.Interaction):
+    async def refresh_view(self, interaction: nextcord.Interaction):
         """Refresh the view to update rarity dropdown and buttons"""
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your fish market!", ephemeral=True)
@@ -793,7 +793,7 @@ class InteractiveFishSeller(discord.ui.View):
         embed = await self.create_embed()
         await interaction.response.edit_message(embed=embed, view=self)
 
-class RaritySelect(discord.ui.Select):
+class RaritySelect(nextcord.ui.Select):
     """Dropdown for selecting rarity to sell"""
     
     def __init__(self, user_id: int, fish_list: list, currency: str, selling_cog):
@@ -816,7 +816,7 @@ class RaritySelect(discord.ui.Select):
             rarity_config = selling_cog._get_rarity_config()
             config = rarity_config.get(rarity, {"emoji": "🐟"})
             
-            options.append(discord.SelectOption(
+            options.append(nextcord.SelectOption(
                 label=f"{rarity.title()} ({count}x)",
                 value=rarity,
                 description=f"Sell all {rarity} fish for {total_value:,} coins",
@@ -831,7 +831,7 @@ class RaritySelect(discord.ui.Select):
             row=2
         )
     
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         """Handle rarity selection"""
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("❌ This isn't your fish market!", ephemeral=True)
@@ -864,7 +864,7 @@ class RaritySelect(discord.ui.Select):
                 rarity_config = self.selling_cog._get_rarity_config()
                 config = rarity_config.get(selected_rarity, {"color": 0x2b2d31, "emoji": "🐟"})
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title=f"{config['emoji']} {selected_rarity.title()} Fish Sold!",
                     description=f"Sold **{success_count:,}** {selected_rarity} fish for **{total_value:,}** {self.currency}",
                     color=config['color']
@@ -890,7 +890,7 @@ class RaritySelect(discord.ui.Select):
                         await interaction.edit_original_response(embed=parent_embed, view=parent_view)
                     else:
                         # No fish left
-                        empty_embed = discord.Embed(
+                        empty_embed = nextcord.Embed(
                             title="🐟 Fish Market",
                             description="✅ All fish sold! Your market is now empty.",
                             color=0x00ff00

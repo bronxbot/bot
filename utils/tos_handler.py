@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from datetime import datetime
 from utils.db import db
 from cogs.logging.logger import CogLogger
@@ -54,27 +54,27 @@ By using BronxBot, you agree to the following terms:
 **Version**: 1.0
 """
 
-class TOSModal(discord.ui.Modal):
+class TOSModal(nextcord.ui.Modal):
     """Terms of Service acceptance modal"""
     
     def __init__(self, original_user_id: int):
         super().__init__(title="Terms of Service Agreement")
         self.original_user_id = original_user_id
     
-    agreement = discord.ui.TextInput(
+    agreement = nextcord.ui.TextInput(
         label="Type 'I AGREE' to accept the Terms of Service",
         placeholder="I AGREE",
         required=True,
         max_length=10
     )
     
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: nextcord.Interaction):
         # Check if the user interacting is the original user
         if interaction.user.id != self.original_user_id:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Access Denied",
                 description="You cannot accept terms for someone else. Use `.tos` to accept your own terms.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return
@@ -126,10 +126,10 @@ class TOSModal(discord.ui.Modal):
                 )
                 welcome_bonus_text = "You've received **1,000** coins to get started!"
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Terms Accepted",
                 description="Thank you for accepting our Terms of Service! You can now use all bot features.",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
             
             embed.add_field(
@@ -140,53 +140,53 @@ class TOSModal(discord.ui.Modal):
             
             await interaction.response.edit_message(embed=embed, view=None)
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Invalid Response",
                 description="Please type exactly 'I AGREE' to accept the Terms of Service.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
-class TOSView(discord.ui.View):
+class TOSView(nextcord.ui.View):
     """Terms of Service view with buttons"""
     
     def __init__(self, original_user_id: int):
         super().__init__(timeout=300)
         self.original_user_id = original_user_id
     
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, interaction: nextcord.Interaction) -> bool:
         """Check if the user interacting is the original user"""
         if interaction.user.id != self.original_user_id:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Access Denied",
                 description="This is not your Terms of Service prompt. Use `.tos` to accept your own terms.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return False
         return True
     
-    @discord.ui.button(label="📋 Read Full Terms", style=discord.ButtonStyle.secondary)
-    async def read_terms(self, interaction: discord.Interaction, button: discord.ui.Button):
-        embed = discord.Embed(
+    @nextcord.ui.button(label="📋 Read Full Terms", style=nextcord.ButtonStyle.secondary)
+    async def read_terms(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
+        embed = nextcord.Embed(
             title="📋 BronxBot Terms of Service",
             description=TermsOfService.TOS_TEXT,
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
     
-    @discord.ui.button(label="✅ Accept Terms", style=discord.ButtonStyle.success)
-    async def accept_terms(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="✅ Accept Terms", style=nextcord.ButtonStyle.success)
+    async def accept_terms(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         modal = TOSModal(self.original_user_id)
         await interaction.response.send_modal(modal)
     
-    @discord.ui.button(label="❌ Decline", style=discord.ButtonStyle.danger)
-    async def decline_terms(self, interaction: discord.Interaction, button: discord.ui.Button):
-        embed = discord.Embed(
+    @nextcord.ui.button(label="❌ Decline", style=nextcord.ButtonStyle.danger)
+    async def decline_terms(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
+        embed = nextcord.Embed(
             title="❌ Terms Declined",
             description="You must accept our Terms of Service to use BronxBot features.\n"
                        "You can review and accept them anytime with `.tos`",
-            color=discord.Color.red()
+            color=nextcord.Color.red()
         )
         await interaction.response.edit_message(embed=embed, view=None)
 
@@ -205,10 +205,10 @@ async def prompt_tos_acceptance(ctx) -> bool:
     if await check_tos_acceptance(ctx.author.id):
         return True
     
-    embed = discord.Embed(
+    embed = nextcord.Embed(
         title="📋 Terms of Service Required",
         description="Welcome to BronxBot! Before you can use our features, please review and accept our Terms of Service.",
-        color=discord.Color.yellow()
+        color=nextcord.Color.yellow()
     )
     
     embed.add_field(
@@ -244,9 +244,9 @@ class TOSCommands(commands.Cog):
         """Show Terms of Service"""
         user_accepted = await check_tos_acceptance(ctx.author.id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 BronxBot Terms of Service",
-            color=discord.Color.blue() if user_accepted else discord.Color.yellow()
+            color=nextcord.Color.blue() if user_accepted else nextcord.Color.yellow()
         )
         
         if user_accepted:
@@ -257,27 +257,27 @@ class TOSCommands(commands.Cog):
                 inline=False
             )
             
-            view = discord.ui.View(timeout=300)
+            view = nextcord.ui.View(timeout=300)
             
             async def show_full_terms(interaction):
                 # Only allow the original user to interact
                 if interaction.user.id != ctx.author.id:
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="❌ Access Denied",
                         description="This is not your Terms of Service display. Use `.tos` to view your own terms.",
-                        color=discord.Color.red()
+                        color=nextcord.Color.red()
                     )
                     await interaction.response.send_message(embed=embed, ephemeral=True)
                     return
                 
-                terms_embed = discord.Embed(
+                terms_embed = nextcord.Embed(
                     title="📋 Full Terms of Service",
                     description=TermsOfService.TOS_TEXT,
-                    color=discord.Color.blue()
+                    color=nextcord.Color.blue()
                 )
                 await interaction.response.send_message(embed=terms_embed, ephemeral=True)
             
-            button = discord.ui.Button(label="📋 Read Full Terms", style=discord.ButtonStyle.secondary)
+            button = nextcord.ui.Button(label="📋 Read Full Terms", style=nextcord.ButtonStyle.secondary)
             button.callback = show_full_terms
             view.add_item(button)
             
@@ -288,9 +288,9 @@ class TOSCommands(commands.Cog):
     @commands.command(name="tosinfo", aliases=["tosdetails"])
     async def tos_info(self, ctx):
         """Show detailed TOS information"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Terms of Service Information",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         user_accepted = await check_tos_acceptance(ctx.author.id)
@@ -337,4 +337,4 @@ class TOSCommands(commands.Cog):
         await ctx.reply(embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(TOSCommands(bot))
+    bot.add_cog(TOSCommands(bot))

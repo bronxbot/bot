@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import datetime
 from cogs.logging.logger import CogLogger
 from cogs.Help import HelpPaginator
@@ -43,9 +43,9 @@ class Status(commands.Cog):
         self.update_shard_stats()
 
         pages = []
-        overview = discord.Embed(
+        overview = nextcord.Embed(
             title="🔋 Shard Status",
-            color=getattr(ctx.author, "color", discord.Color.blurple())
+            color=getattr(ctx.author, "color", nextcord.Color.blurple())
         )
 
         total_guilds = sum(s['guild_count'] for s in self.shard_stats.values())
@@ -81,9 +81,9 @@ class Status(commands.Cog):
         # Create detail pages - 5 shards per page
         shards = list(self.shard_stats.items())
         for i in range(0, len(shards), 5):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🔋 Shard Details",
-                color=getattr(ctx.author, "color", discord.Color.blurple())
+                color=getattr(ctx.author, "color", nextcord.Color.blurple())
             )
 
             for shard_id, stats in shards[i:i+5]:
@@ -146,4 +146,4 @@ class Status(commands.Cog):
             self.shard_stats[shard_id]['last_seen'] = datetime.datetime.now()
 
 async def setup(bot):
-    await bot.add_cog(Status(bot))
+    bot.add_cog(Status(bot))

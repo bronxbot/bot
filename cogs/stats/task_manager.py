@@ -5,7 +5,7 @@ Handles background tasks for the statistics system.
 
 import asyncio
 from datetime import datetime, time
-from discord.ext import tasks
+from nextcord.ext import tasks
 from typing import Dict, List
 
 from cogs.logging.logger import CogLogger

@@ -1,9 +1,9 @@
 import random
 import string
 import asyncio
-import discord
-from discord.ext import commands
-from discord import DMChannel, TextChannel
+import nextcord
+from nextcord.ext import commands
+from nextcord import DMChannel, TextChannel
 from cogs.logging.logger import CogLogger
 
 class Cypher(commands.Cog):
@@ -133,7 +133,7 @@ Please send your KEY now (or in format key:message):```""")
             encrypt_map, _ = self.generate_cipher_mapping(key)
             encrypted_text = text.translate(encrypt_map)
             
-            embed = discord.Embed(color=0x2b2d31) 
+            embed = nextcord.Embed(color=0x2b2d31) 
             embed.add_field(name="Key", value=f"`{key[:50]}`", inline=False)
             embed.add_field(name="Original", value=self.wrap_in_codeblock(text[:1900]), inline=False)
             embed.add_field(name="Encrypted", value=self.wrap_in_codeblock(encrypted_text), inline=False)
@@ -173,7 +173,7 @@ Please send your KEY now (or in format key:message):```""")
             _, decrypt_map = self.generate_cipher_mapping(key)
             decrypted_text = text.translate(decrypt_map)
             
-            embed = discord.Embed(color=0x2b2d31)
+            embed = nextcord.Embed(color=0x2b2d31)
             embed.add_field(name="Key", value=f"`{key[:50]}`", inline=False)
             embed.add_field(name="Encrypted", value=self.wrap_in_codeblock(text[:1900]), inline=False)
             embed.add_field(name="Decrypted", value=self.wrap_in_codeblock(decrypted_text), inline=False)
@@ -211,7 +211,7 @@ Please send your KEY now (or in format key:message):```""")
             likely_encrypted = self.is_likely_encrypted(text)
             
             # base embed
-            embed = discord.Embed(color=0x2b2d31)
+            embed = nextcord.Embed(color=0x2b2d31)
             embed.add_field(name="Key", value=f"`{key}`", inline=False)
             
             if likely_encrypted:
@@ -242,7 +242,7 @@ Please send your KEY now (or in format key:message):```""")
                 await ctx.reply(f"{reply_msg} - check your DMs", mention_author=False)
                 
         except Exception as e:
-            error_embed = discord.Embed(
+            error_embed = nextcord.Embed(
                 description=f"```❌ Cipher Test Failed\nError: {str(e)}```",
                 color=0xe74c3c
             )
@@ -266,4 +266,4 @@ Please send your KEY now (or in format key:message):```""")
         return ratio > 0.4 or uncommon_ratio > 0.8
 
 async def setup(bot):
-    await bot.add_cog(Cypher(bot))
+    bot.add_cog(Cypher(bot))

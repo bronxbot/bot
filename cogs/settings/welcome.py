@@ -1,8 +1,8 @@
 # Welcome Settings
 # Handles welcome messages, auto-roles, and new member configuration
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import Optional, List, Dict, Union
 import json
 import re
@@ -88,7 +88,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def welcome_settings(self, ctx):
         """Welcome settings management"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="👋 Welcome Settings",
             description=(
                 "Configure welcome messages and new member settings\n\n"
@@ -112,7 +112,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         welcome_settings = settings.get('welcome', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="👋 Welcome Settings Overview",
             color=0x2ecc71
         )
@@ -175,7 +175,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         
         if enabled is None:
             current_status = general.get('enabled', False)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="👋 Welcome Status",
                 color=0x2ecc71
             )
@@ -197,7 +197,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         await db.update_guild_settings(ctx.guild.id, {'welcome': welcome_settings})
         
         status = "enabled" if enabled else "disabled"
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"✅ Welcome Messages {status.title()}",
             description=f"Welcome messages have been {status}!",
             color=0x2ecc71 if enabled else 0x95a5a6
@@ -217,7 +217,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def channel_settings(self, ctx):
         """Manage welcome channels"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📺 Welcome Channel Management",
             description="Configure up to 3 welcome channels with different types",
             color=0x2ecc71
@@ -245,7 +245,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
 
     @channel_settings.command(name='add')
     @commands.has_permissions(manage_guild=True)
-    async def add_welcome_channel(self, ctx, channel: discord.TextChannel, channel_type: str = 'normal'):
+    async def add_welcome_channel(self, ctx, channel: nextcord.TextChannel, channel_type: str = 'normal'):
         """Add a welcome channel"""
         valid_types = ['normal', 'ping', 'silent']
         if channel_type.lower() not in valid_types:
@@ -277,7 +277,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         welcome_settings['general'] = general
         await db.update_guild_settings(ctx.guild.id, {'welcome': welcome_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Welcome Channel Added",
             description=f"Added {channel.mention} as a {channel_type} welcome channel!",
             color=0x2ecc71
@@ -292,7 +292,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
 
     @channel_settings.command(name='remove')
     @commands.has_permissions(manage_guild=True)
-    async def remove_welcome_channel(self, ctx, channel: discord.TextChannel):
+    async def remove_welcome_channel(self, ctx, channel: nextcord.TextChannel):
         """Remove a welcome channel"""
         settings = await db.get_guild_settings(ctx.guild.id)
         welcome_settings = settings.get('welcome', {})
@@ -314,7 +314,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         welcome_settings['general'] = general
         await db.update_guild_settings(ctx.guild.id, {'welcome': welcome_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Welcome Channel Removed",
             description=f"Removed {channel.mention} from welcome channels!",
             color=0x2ecc71
@@ -328,7 +328,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         channels = settings.get('welcome', {}).get('general', {}).get('channels', [])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📺 Welcome Channels",
             color=0x2ecc71
         )
@@ -362,7 +362,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def message_settings(self, ctx):
         """Configure welcome messages"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💬 Welcome Message Configuration",
             description="Configure custom welcome messages for each channel",
             color=0x2ecc71
@@ -392,7 +392,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
 
     @message_settings.command(name='set')
     @commands.has_permissions(manage_guild=True)
-    async def set_welcome_message(self, ctx, channel: discord.TextChannel):
+    async def set_welcome_message(self, ctx, channel: nextcord.TextChannel):
         """Set welcome message for a channel (Interactive)"""
         settings = await db.get_guild_settings(ctx.guild.id)
         channels = settings.get('welcome', {}).get('general', {}).get('channels', [])
@@ -407,7 +407,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         if not channel_data:
             return await ctx.send(f"❌ {channel.mention} is not a welcome channel! Add it first with `welcome channels add`")
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💬 Set Welcome Message",
             description=f"Please enter the welcome message for {channel.mention}",
             color=0x2ecc71
@@ -452,7 +452,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
             welcome_settings['general'] = general
             await db.update_guild_settings(ctx.guild.id, {'welcome': welcome_settings})
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Welcome Message Set",
                 description=f"Welcome message for {channel.mention} has been configured!",
                 color=0x2ecc71
@@ -474,7 +474,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
 
     @message_settings.command(name='test')
     @commands.has_permissions(manage_guild=True)
-    async def test_welcome_message(self, ctx, channel: discord.TextChannel):
+    async def test_welcome_message(self, ctx, channel: nextcord.TextChannel):
         """Test a welcome message"""
         settings = await db.get_guild_settings(ctx.guild.id)
         channels = settings.get('welcome', {}).get('general', {}).get('channels', [])
@@ -496,7 +496,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         # Parse the message with the command author as test user
         parsed_message = await self.parse_welcome_message(message, ctx.author, ctx.guild)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🧪 Welcome Message Test",
             description=f"Here's how the welcome message will look in {channel.mention}:",
             color=0x3498db
@@ -506,7 +506,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
             # Handle embed message
             try:
                 embed_data = self.parse_embed_message(parsed_message)
-                test_embed = discord.Embed.from_dict(embed_data)
+                test_embed = nextcord.Embed.from_dict(embed_data)
                 await ctx.send(embed=embed, view=None)
                 await ctx.send(embed=test_embed)
             except Exception as e:
@@ -529,7 +529,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def show_variables(self, ctx):
         """Show all available welcome message variables"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Welcome Message Variables",
             description="Complete list of variables you can use in welcome messages",
             color=0x3498db
@@ -594,7 +594,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def autorole_settings(self, ctx):
         """Manage auto-roles for new members"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎭 Auto-role Management",
             description="Configure roles that are automatically given to new members",
             color=0x2ecc71
@@ -622,7 +622,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
 
     @autorole_settings.command(name='add')
     @commands.has_permissions(manage_guild=True)
-    async def add_autorole(self, ctx, role: discord.Role, include_bots: bool = False):
+    async def add_autorole(self, ctx, role: nextcord.Role, include_bots: bool = False):
         """Add an auto-role for new members"""
         # Check bot permissions
         if role >= ctx.guild.me.top_role:
@@ -655,7 +655,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         welcome_settings['general'] = general
         await db.update_guild_settings(ctx.guild.id, {'welcome': welcome_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Auto-role Added",
             description=f"Added {role.mention} as an auto-role!",
             color=0x2ecc71
@@ -669,7 +669,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
 
     @autorole_settings.command(name='remove')
     @commands.has_permissions(manage_guild=True)
-    async def remove_autorole(self, ctx, role: discord.Role):
+    async def remove_autorole(self, ctx, role: nextcord.Role):
         """Remove an auto-role"""
         settings = await db.get_guild_settings(ctx.guild.id)
         welcome_settings = settings.get('welcome', {})
@@ -691,7 +691,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         welcome_settings['general'] = general
         await db.update_guild_settings(ctx.guild.id, {'welcome': welcome_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Auto-role Removed",
             description=f"Removed {role.mention} from auto-roles!",
             color=0x2ecc71
@@ -705,7 +705,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         auto_roles = settings.get('welcome', {}).get('general', {}).get('auto_roles', [])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎭 Auto-roles",
             color=0x2ecc71
         )
@@ -731,7 +731,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def dm_settings(self, ctx):
         """Configure DM on join settings"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📬 DM on Join Settings",
             description="Configure private messages sent to new members",
             color=0x2ecc71
@@ -758,7 +758,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         
         if enabled is None:
             current_status = general.get('dm_enabled', False)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📬 DM on Join Status",
                 color=0x2ecc71
             )
@@ -774,7 +774,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         await db.update_guild_settings(ctx.guild.id, {'welcome': welcome_settings})
         
         status = "enabled" if enabled else "disabled"
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"✅ DM on Join {status.title()}",
             description=f"DM on join has been {status}!",
             color=0x2ecc71 if enabled else 0x95a5a6
@@ -789,7 +789,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         
         await ctx.send(embed=embed)
 
-    async def parse_welcome_message(self, message: str, member: discord.Member, guild: discord.Guild) -> str:
+    async def parse_welcome_message(self, message: str, member: nextcord.Member, guild: nextcord.Guild) -> str:
         """Parse welcome message variables"""
         # Create replacements dictionary
         replacements = {
@@ -832,7 +832,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
             '{count.ordinal}': self._get_ordinal(guild.member_count),
             '{count.bots}': str(sum(1 for m in guild.members if m.bot)),
             '{count.humans}': str(sum(1 for m in guild.members if not m.bot)),
-            '{count.online}': str(sum(1 for m in guild.members if m.status != discord.Status.offline)),
+            '{count.online}': str(sum(1 for m in guild.members if m.status != nextcord.Status.offline)),
             
             # Time variables
             '{time}': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC'),
@@ -889,7 +889,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
             "color": 0x2ecc71
         }
 
-    async def send_welcome_message(self, member: discord.Member):
+    async def send_welcome_message(self, member: nextcord.Member):
         """Send welcome message when member joins"""
         settings = await db.get_guild_settings(member.guild.id)
         welcome_settings = settings.get('welcome', {})
@@ -920,7 +920,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
                         await asyncio.sleep(delete_after)
                         try:
                             await msg.delete()
-                        except discord.HTTPException:
+                        except nextcord.HTTPException:
                             pass
                 elif channel_data['type'] == 'silent':
                     # Send without pinging
@@ -930,7 +930,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
                     # Normal welcome message
                     await channel.send(parsed_message)
                     
-            except discord.HTTPException as e:
+            except nextcord.HTTPException as e:
                 logger.error(f"Failed to send welcome message: {e}")
         
         # Apply auto-roles
@@ -943,7 +943,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
             if role and role < member.guild.me.top_role:
                 try:
                     await member.add_roles(role, reason="Auto-role on join")
-                except discord.HTTPException as e:
+                except nextcord.HTTPException as e:
                     logger.error(f"Failed to add auto-role {role.name}: {e}")
         
         # Send DM if enabled
@@ -951,7 +951,7 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
             try:
                 dm_message = await self.parse_welcome_message(general['dm_message'], member, member.guild)
                 await member.send(dm_message)
-            except discord.HTTPException:
+            except nextcord.HTTPException:
                 pass  # User might have DMs disabled
 
     async def cog_command_error(self, ctx, error):
@@ -959,4 +959,4 @@ class WelcomeSettings(commands.Cog, ErrorHandler):
         await self.handle_error(ctx, error, "welcome settings")
 
 async def setup(bot):
-    await bot.add_cog(WelcomeSettings(bot))
+    bot.add_cog(WelcomeSettings(bot))

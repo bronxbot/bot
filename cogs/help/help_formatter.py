@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import List, Tuple, Dict, Any, Union
 from .help_utils import HelpUtils
 
@@ -10,9 +10,9 @@ class HelpFormatter:
         self.bot = bot
         self.utils = HelpUtils(bot)
 
-    def create_overview_embed(self) -> discord.Embed:
+    def create_overview_embed(self) -> nextcord.Embed:
         """Create the main overview embed"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🤖 BronxBot Help",
             description=(
                 "Welcome to BronxBot! Use the dropdown menu below to explore different categories.\n\n"
@@ -57,9 +57,9 @@ class HelpFormatter:
         
         return embed
 
-    def create_command_embed(self, command: commands.Command) -> discord.Embed:
+    def create_command_embed(self, command: commands.Command) -> nextcord.Embed:
         """Create an embed for a specific command"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"📋 Command: {command.qualified_name}",
             color=0x2b2d31
         )
@@ -144,12 +144,12 @@ class HelpFormatter:
         
         return embed
 
-    def create_cog_embed(self, cog: commands.Cog) -> discord.Embed:
+    def create_cog_embed(self, cog: commands.Cog) -> nextcord.Embed:
         """Create an embed for a specific cog"""
         cog_name = cog.__class__.__name__
         pretty_name = self.utils.prettify_cog_name(cog_name)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"{pretty_name}",
             description=cog.__doc__ or f"Commands for {pretty_name}",
             color=0x2b2d31
@@ -219,9 +219,9 @@ class HelpFormatter:
         
         return embed
 
-    def create_search_results_embed(self, query: str, results: List[Tuple[commands.Command, str]]) -> discord.Embed:
+    def create_search_results_embed(self, query: str, results: List[Tuple[commands.Command, str]]) -> nextcord.Embed:
         """Create an embed showing search results"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🔍 Search Results for '{query}'",
             description=f"Found {len(results)} matching commands:",
             color=0x2b2d31
@@ -281,7 +281,7 @@ class HelpFormatter:
         
         return embed
 
-    def create_all_pages(self) -> Tuple[List[discord.Embed], Dict[str, int]]:
+    def create_all_pages(self) -> Tuple[List[nextcord.Embed], Dict[str, int]]:
         """Create all help pages and return cog page mapping"""
         pages = []
         cog_page_map = {}
@@ -299,7 +299,7 @@ class HelpFormatter:
         
         return pages, cog_page_map
 
-    def create_cog_pages(self, cog: commands.Cog) -> Tuple[List[discord.Embed], Dict[str, int]]:
+    def create_cog_pages(self, cog: commands.Cog) -> Tuple[List[nextcord.Embed], Dict[str, int]]:
         """Create pages for a specific cog"""
         pages = []
         cog_page_map = {}

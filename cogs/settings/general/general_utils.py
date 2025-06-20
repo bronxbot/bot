@@ -3,8 +3,8 @@ General Utilities
 Utility functions for the general settings system.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import Dict, List, Set
 
 from utils.db import AsyncDatabase
@@ -184,7 +184,7 @@ class GeneralUtils:
         
         return stats
 
-    async def cleanup_deleted_entities(self, guild_id: int, guild: discord.Guild):
+    async def cleanup_deleted_entities(self, guild_id: int, guild: nextcord.Guild):
         """Clean up references to deleted roles/channels/users"""
         settings = await db.get_guild_settings(guild_id)
         updated = False
@@ -229,9 +229,9 @@ class GeneralUtils:
         
         return updated
 
-    def format_permissions_help(self) -> discord.Embed:
+    def format_permissions_help(self) -> nextcord.Embed:
         """Create help embed for permissions"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔧 General Settings Help",
             description="Comprehensive guide to general server settings",
             color=0x3498db

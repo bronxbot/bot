@@ -8,4 +8,4 @@ from .trading import Trading
 
 async def setup(bot):
     """Setup function for the trading cog"""
-    await bot.add_cog(Trading(bot))
+    bot.add_cog(Trading(bot))

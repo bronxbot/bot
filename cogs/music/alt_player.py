@@ -3,8 +3,8 @@ Alternative Music Player with multiple fallback methods
 Handles YouTube bot detection by using multiple strategies
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 import asyncio
 import yt_dlp
 import logging
@@ -195,7 +195,7 @@ class AlternativeMusicPlayer(commands.Cog):
         
         return []
     
-    async def create_audio_source_safe(self, video_url: str, title: str = "Unknown") -> discord.PCMVolumeTransformer:
+    async def create_audio_source_safe(self, video_url: str, title: str = "Unknown") -> nextcord.PCMVolumeTransformer:
         """Create audio source with multiple fallback methods"""
         
         # Try each yt-dlp instance to get stream URL
@@ -220,8 +220,8 @@ class AlternativeMusicPlayer(commands.Cog):
                 }
                 
                 try:
-                    audio_source = discord.FFmpegPCMAudio(stream_url, **ffmpeg_options)
-                    volume_source = discord.PCMVolumeTransformer(audio_source, volume=0.5)
+                    audio_source = nextcord.FFmpegPCMAudio(stream_url, **ffmpeg_options)
+                    volume_source = nextcord.PCMVolumeTransformer(audio_source, volume=0.5)
                     
                     # Attach metadata with proper title handling
                     extracted_title = data.get('title', title)
@@ -244,8 +244,8 @@ class AlternativeMusicPlayer(commands.Cog):
                     
                     # Try with minimal options
                     try:
-                        audio_source = discord.FFmpegPCMAudio(stream_url, before_options='-nostdin', options='-vn')
-                        volume_source = discord.PCMVolumeTransformer(audio_source, volume=0.5)
+                        audio_source = nextcord.FFmpegPCMAudio(stream_url, before_options='-nostdin', options='-vn')
+                        volume_source = nextcord.PCMVolumeTransformer(audio_source, volume=0.5)
                         
                         # Handle title properly for minimal options too
                         extracted_title = data.get('title', title)
@@ -275,9 +275,9 @@ class AlternativeMusicPlayer(commands.Cog):
     @commands.command(name='search2', aliases=['asearch', 'find2'])
     async def alternative_search(self, ctx, *, query: str):
         """Advanced search using multiple methods (alternative to basic search)"""
-        loading_embed = discord.Embed(
+        loading_embed = nextcord.Embed(
             description=f"🔍 Searching with multiple methods: **{query}**",
-            color=discord.Color.yellow()
+            color=nextcord.Color.yellow()
         )
         message = await ctx.send(embed=loading_embed)
         
@@ -285,17 +285,17 @@ class AlternativeMusicPlayer(commands.Cog):
             results = await self.search_youtube_multi(query, max_results=5)
             
             if not results:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ No results found with any method.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await message.edit(embed=embed)
                 return
             
             # Create search results embed
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"🔍 Alternative Search Results for: {query}",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
             
             description = ""
@@ -320,9 +320,9 @@ class AlternativeMusicPlayer(commands.Cog):
             
         except Exception as e:
             logging.error(f"Alternative search error: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"❌ Alternative search failed: {str(e)}",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await message.edit(embed=embed)
     
@@ -330,9 +330,9 @@ class AlternativeMusicPlayer(commands.Cog):
     async def alternative_play(self, ctx, choice: str = None):
         """Advanced play command with multiple fallback methods"""
         if not ctx.author.voice:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ You need to be in a voice channel!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
@@ -340,9 +340,9 @@ class AlternativeMusicPlayer(commands.Cog):
             try:
                 await ctx.author.voice.channel.connect()
             except Exception as e:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"❌ Failed to connect: {str(e)}",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.send(embed=embed)
         
@@ -358,25 +358,25 @@ class AlternativeMusicPlayer(commands.Cog):
                 video_url = result['url']
                 title = result['title']
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Invalid choice or no search results found. Use `.search2` first!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.send(embed=embed)
         
         elif choice:
             # Direct search and play
-            loading_embed = discord.Embed(
+            loading_embed = nextcord.Embed(
                 description=f"🔍 Searching and playing: **{choice}**",
-                color=discord.Color.yellow()
+                color=nextcord.Color.yellow()
             )
             message = await ctx.send(embed=loading_embed)
             
             results = await self.search_youtube_multi(choice, max_results=1)
             if not results:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ No results found with alternative search.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await message.edit(embed=embed)
             
@@ -384,17 +384,17 @@ class AlternativeMusicPlayer(commands.Cog):
             video_url = result['url']
             title = result['title']
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Please provide a search query or choice number!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         
         # Try to play
         try:
-            loading_embed = discord.Embed(
+            loading_embed = nextcord.Embed(
                 description=f"⏳ Preparing to play: **{title}**",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
             
             if 'message' not in locals():
@@ -409,9 +409,9 @@ class AlternativeMusicPlayer(commands.Cog):
             
             ctx.voice_client.play(source)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"🎵 Now playing: **{source.title}**{f' by *{source.uploader}*' if hasattr(source, 'uploader') and source.uploader else ''}",
-                color=discord.Color.green()
+                color=nextcord.Color.green()
             )
             
             embed.set_footer(text=f"Requested by {ctx.author.display_name}")
@@ -420,9 +420,9 @@ class AlternativeMusicPlayer(commands.Cog):
             
         except Exception as e:
             logging.error(f"Alternative play error: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"❌ Failed to play with alternative method: {str(e)}",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             
             if 'message' not in locals():
@@ -435,4 +435,4 @@ class AlternativeMusicPlayer(commands.Cog):
         asyncio.create_task(self.session.close())
 
 async def setup(bot):
-    await bot.add_cog(AlternativeMusicPlayer(bot))
+    bot.add_cog(AlternativeMusicPlayer(bot))

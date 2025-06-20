@@ -1,8 +1,8 @@
 # Music Settings
 # Handles music bot configuration, playlists, and music permissions
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import Optional, List, Dict, Union
 import json
 from utils.db import AsyncDatabase
@@ -23,7 +23,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def music_settings(self, ctx):
         """Music settings management"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎵 Music Settings",
             description=(
                 "Configure music bot settings for this server\n\n"
@@ -45,7 +45,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         music_settings = settings.get('music', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎵 Music Settings Overview",
             color=0x9b59b6
         )
@@ -106,7 +106,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def playlist_settings(self, ctx):
         """Manage server playlists"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Playlist Management",
             description="Manage server music playlists",
             color=0x9b59b6
@@ -132,7 +132,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         playlists = settings.get('music', {}).get('playlists', [])
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Server Playlists",
             color=0x9b59b6
         )
@@ -183,7 +183,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         music_settings['playlists'] = playlists
         await db.update_guild_settings(ctx.guild.id, {'music': music_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Playlist Created",
             description=f"Successfully created playlist **{name}**!",
             color=0x2ecc71
@@ -218,7 +218,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         music_settings['playlists'] = playlists
         await db.update_guild_settings(ctx.guild.id, {'music': music_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Playlist Deleted",
             description=f"Successfully deleted playlist **{name}**!",
             color=0x2ecc71
@@ -260,7 +260,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         music_settings['playlists'] = playlists
         await db.update_guild_settings(ctx.guild.id, {'music': music_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Song Added to Playlist",
             description=f"Added song to playlist **{playlist_name}**!",
             color=0x2ecc71
@@ -290,7 +290,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         if not target_playlist:
             return await ctx.send(f"❌ No playlist named '{name}' found!")
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"📋 Playlist: {target_playlist['name']}",
             color=0x9b59b6
         )
@@ -328,7 +328,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def music_permissions(self, ctx):
         """Configure music permissions"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔐 Music Permissions",
             description="Configure who can control music playback",
             color=0x9b59b6
@@ -353,7 +353,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         settings = await db.get_guild_settings(ctx.guild.id)
         permissions = settings.get('music', {}).get('permissions', {})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔐 Music Permissions Configuration",
             color=0x9b59b6
         )
@@ -409,7 +409,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def dj_management(self, ctx):
         """Manage DJ roles"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="👑 DJ Role Management",
             description="DJ roles have special permissions for music control",
             color=0x9b59b6
@@ -438,7 +438,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
 
     @dj_management.command(name='add')
     @commands.has_permissions(manage_guild=True)
-    async def add_dj_role(self, ctx, role: discord.Role):
+    async def add_dj_role(self, ctx, role: nextcord.Role):
         """Add a DJ role"""
         settings = await db.get_guild_settings(ctx.guild.id)
         music_settings = settings.get('music', {})
@@ -453,7 +453,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         music_settings['permissions'] = permissions
         await db.update_guild_settings(ctx.guild.id, {'music': music_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ DJ Role Added",
             description=f"Added {role.mention} as a DJ role!",
             color=0x2ecc71
@@ -462,7 +462,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
 
     @dj_management.command(name='remove')
     @commands.has_permissions(manage_guild=True)
-    async def remove_dj_role(self, ctx, role: discord.Role):
+    async def remove_dj_role(self, ctx, role: nextcord.Role):
         """Remove a DJ role"""
         settings = await db.get_guild_settings(ctx.guild.id)
         music_settings = settings.get('music', {})
@@ -477,7 +477,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         music_settings['permissions'] = permissions
         await db.update_guild_settings(ctx.guild.id, {'music': music_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ DJ Role Removed",
             description=f"Removed {role.mention} from DJ roles!",
             color=0x2ecc71
@@ -499,7 +499,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         music_settings['permissions'] = permissions
         await db.update_guild_settings(ctx.guild.id, {'music': music_settings})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Skip Votes Updated",
             description=f"Skip votes required set to {votes}!",
             color=0x2ecc71
@@ -511,7 +511,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
     @commands.has_permissions(manage_guild=True)
     async def channel_settings(self, ctx):
         """Configure music channel settings"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📺 Music Channel Settings",
             description="Configure which channels can use music commands",
             color=0x9b59b6
@@ -539,7 +539,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         allowed_channels = channels.get('allowed_channels', [])
         music_channel_only = channels.get('music_channel_only', False)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📺 Music Channel Configuration",
             color=0x9b59b6
         )
@@ -573,7 +573,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         
         await ctx.send(embed=embed)
 
-    def has_music_permissions(self, member: discord.Member, guild_settings: dict) -> bool:
+    def has_music_permissions(self, member: nextcord.Member, guild_settings: dict) -> bool:
         """Check if a member has music permissions"""
         # Server administrators always have permission
         if member.guild_permissions.manage_guild or member.guild_permissions.administrator:
@@ -586,7 +586,7 @@ class MusicSettings(commands.Cog, ErrorHandler):
         member_role_ids = [role.id for role in member.roles]
         return any(role_id in dj_roles for role_id in member_role_ids)
 
-    def can_use_music_in_channel(self, channel: discord.TextChannel, guild_settings: dict) -> bool:
+    def can_use_music_in_channel(self, channel: nextcord.TextChannel, guild_settings: dict) -> bool:
         """Check if music commands can be used in a channel"""
         channels = guild_settings.get('music', {}).get('channels', {})
         
@@ -603,4 +603,4 @@ class MusicSettings(commands.Cog, ErrorHandler):
         await self.handle_error(ctx, error, "music settings")
 
 async def setup(bot):
-    await bot.add_cog(MusicSettings(bot))
+    bot.add_cog(MusicSettings(bot))

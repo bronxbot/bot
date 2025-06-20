@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands, tasks
+import nextcord
+from nextcord.ext import commands, tasks
 import datetime
 import re
 from typing import Optional, List, Dict, Any
@@ -63,7 +63,7 @@ class Reminders(commands.Cog, ErrorHandler):
             if not user:
                 return
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⏰ Reminder",
                 description=message,
                 color=0x2b2d31,
@@ -77,7 +77,7 @@ class Reminders(commands.Cog, ErrorHandler):
             try:
                 await user.send(embed=embed)
                 self.logger.info(f"Sent reminder DM to user {user_id}")
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 # If DM fails, try to send in original channel
                 if channel_id:
                     channel = self.bot.get_channel(channel_id)
@@ -228,7 +228,7 @@ class Reminders(commands.Cog, ErrorHandler):
         **Important:** Use capital `M` for months, lowercase `m` for minutes!
         """
         if not args:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⏰ Reminder Help",
                 description=(
                     "**Usage:** `.remind <time> <message>`\n\n"
@@ -270,9 +270,9 @@ class Reminders(commands.Cog, ErrorHandler):
                 break
         
         if not time_parts:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Please specify a time! Example: `.remind 1h 30m Take a break`",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.reply(embed=embed)
         
@@ -282,7 +282,7 @@ class Reminders(commands.Cog, ErrorHandler):
         # Parse the time
         seconds = self.parse_time_string(time_str)
         if seconds is None:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Invalid Time Format",
                 description=(
                     "Please use valid time units:\n"
@@ -292,24 +292,24 @@ class Reminders(commands.Cog, ErrorHandler):
                     "• `1h 30m` • `2 days` • `1Y 6M` • `14d5M`\n\n"
                     "**Remember:** Capital `M` = months, lowercase `m` = minutes!"
                 ),
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.reply(embed=embed)
         
         # Check limits
         if seconds <= 0:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Time must be positive!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.reply(embed=embed)
         
         # Maximum 2 years
         max_seconds = 2 * 365 * 24 * 3600  # 2 years
         if seconds > max_seconds:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Maximum reminder time is 2 years!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.reply(embed=embed)
         
@@ -328,9 +328,9 @@ class Reminders(commands.Cog, ErrorHandler):
         
         try:
             if not await db.ensure_connected():
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Database connection failed!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -339,10 +339,10 @@ class Reminders(commands.Cog, ErrorHandler):
             if result.inserted_id:
                 formatted_duration = self.format_time_duration(seconds)
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="⏰ Reminder Set",
                     description=f"I'll remind you in **{formatted_duration}**: `{message}`",
-                    color=discord.Color.green(),
+                    color=nextcord.Color.green(),
                     timestamp=due_time
                 )
                 embed.set_footer(text="Reminder scheduled for")
@@ -350,17 +350,17 @@ class Reminders(commands.Cog, ErrorHandler):
                 await ctx.reply(embed=embed)
                 self.logger.info(f"Set reminder for user {ctx.author.id}: {message} in {formatted_duration}")
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Failed to save reminder!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed)
                 
         except Exception as e:
             self.logger.error(f"Error saving reminder: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ An error occurred while saving the reminder!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.reply(embed=embed)
     
@@ -369,9 +369,9 @@ class Reminders(commands.Cog, ErrorHandler):
         """View your active reminders"""
         try:
             if not await db.ensure_connected():
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Database connection failed!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -380,14 +380,14 @@ class Reminders(commands.Cog, ErrorHandler):
             }).sort("due_time", 1).to_list(None)
             
             if not reminders:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="⏰ Your Reminders",
                     description="You don't have any active reminders.",
                     color=0x2b2d31
                 )
                 return await ctx.reply(embed=embed)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⏰ Your Active Reminders",
                 description=f"You have {len(reminders)} active reminder{'s' if len(reminders) != 1 else ''}\n\n*Use the reminder numbers with `.editreminder` or `.cancelreminder`*",
                 color=0x2b2d31
@@ -422,9 +422,9 @@ class Reminders(commands.Cog, ErrorHandler):
             
         except Exception as e:
             self.logger.error(f"Error fetching reminders: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ An error occurred while fetching reminders!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.reply(embed=embed)
     
@@ -432,17 +432,17 @@ class Reminders(commands.Cog, ErrorHandler):
     async def cancelreminder(self, ctx, reminder_number: int = None):
         """Cancel a specific reminder by number (use .myreminders to see numbers)"""
         if reminder_number is None:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ Please specify a reminder number! Use `.myreminders` to see your reminders.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.reply(embed=embed)
         
         try:
             if not await db.ensure_connected():
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Database connection failed!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -452,16 +452,16 @@ class Reminders(commands.Cog, ErrorHandler):
             }).sort("due_time", 1).to_list(None)
             
             if not reminders:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ You don't have any active reminders!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
             if reminder_number < 1 or reminder_number > len(reminders):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"❌ Invalid reminder number! You have {len(reminders)} reminder{'s' if len(reminders) != 1 else ''}.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -476,25 +476,25 @@ class Reminders(commands.Cog, ErrorHandler):
                 if len(message) > 100:
                     message = message[:97] + "..."
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="✅ Reminder Cancelled",
                     description=f"Cancelled reminder: `{message}`",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
                 await ctx.reply(embed=embed)
                 self.logger.info(f"Cancelled reminder for user {ctx.author.id}: {reminder_to_delete['message']}")
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Failed to cancel reminder!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed)
                 
         except Exception as e:
             self.logger.error(f"Error cancelling reminder: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ An error occurred while cancelling the reminder!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.reply(embed=embed)
     
@@ -503,9 +503,9 @@ class Reminders(commands.Cog, ErrorHandler):
         """Cancel all your active reminders"""
         try:
             if not await db.ensure_connected():
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Database connection failed!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -513,9 +513,9 @@ class Reminders(commands.Cog, ErrorHandler):
             count = await db.db.reminders.count_documents({"user_id": ctx.author.id})
             
             if count == 0:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ You don't have any active reminders!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -523,25 +523,25 @@ class Reminders(commands.Cog, ErrorHandler):
             result = await db.db.reminders.delete_many({"user_id": ctx.author.id})
             
             if result.deleted_count > 0:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="✅ All Reminders Cancelled",
                     description=f"Cancelled {result.deleted_count} reminder{'s' if result.deleted_count != 1 else ''}.",
-                    color=discord.Color.green()
+                    color=nextcord.Color.green()
                 )
                 await ctx.reply(embed=embed)
                 self.logger.info(f"Cancelled all {result.deleted_count} reminders for user {ctx.author.id}")
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Failed to cancel reminders!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed)
                 
         except Exception as e:
             self.logger.error(f"Error cancelling all reminders: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ An error occurred while cancelling reminders!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.reply(embed=embed)
     
@@ -559,7 +559,7 @@ class Reminders(commands.Cog, ErrorHandler):
         Use `.myreminders` to see your reminder numbers.
         """
         if reminder_number is None or new_args is None:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⏰ Edit Reminder Help",
                 description=(
                     "**Usage:** `.editreminder <number> <new_time> <new_message>`\n\n"
@@ -574,9 +574,9 @@ class Reminders(commands.Cog, ErrorHandler):
         
         try:
             if not await db.ensure_connected():
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Database connection failed!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -586,16 +586,16 @@ class Reminders(commands.Cog, ErrorHandler):
             }).sort("due_time", 1).to_list(None)
             
             if not reminders:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ You don't have any active reminders!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
             if reminder_number < 1 or reminder_number > len(reminders):
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description=f"❌ Invalid reminder number! You have {len(reminders)} reminder{'s' if len(reminders) != 1 else ''}.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -622,9 +622,9 @@ class Reminders(commands.Cog, ErrorHandler):
                     break
             
             if not time_parts:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Please specify a time! Example: `.editreminder 1 1h 30m New message`",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -634,7 +634,7 @@ class Reminders(commands.Cog, ErrorHandler):
             # Parse the time
             seconds = self.parse_time_string(time_str)
             if seconds is None:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="❌ Invalid Time Format",
                     description=(
                         "Please use valid time units:\n"
@@ -644,24 +644,24 @@ class Reminders(commands.Cog, ErrorHandler):
                         "• `1h 30m` • `2 days` • `1Y 6M` • `14d5M`\n\n"
                         "**Remember:** Capital `M` = months, lowercase `m` = minutes!"
                     ),
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
             # Check limits
             if seconds <= 0:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Time must be positive!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
             # Maximum 2 years
             max_seconds = 2 * 365 * 24 * 3600  # 2 years
             if seconds > max_seconds:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Maximum reminder time is 2 years!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.reply(embed=embed)
             
@@ -684,10 +684,10 @@ class Reminders(commands.Cog, ErrorHandler):
             if result.modified_count > 0:
                 formatted_duration = self.format_time_duration(seconds)
                 
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="✅ Reminder Updated",
                     description=f"Updated reminder #{reminder_number}",
-                    color=discord.Color.green(),
+                    color=nextcord.Color.green(),
                     timestamp=new_due_time
                 )
                 
@@ -714,17 +714,17 @@ class Reminders(commands.Cog, ErrorHandler):
                 await ctx.reply(embed=embed)
                 self.logger.info(f"Updated reminder #{reminder_number} for user {ctx.author.id}: '{old_message}' -> '{new_message}' in {formatted_duration}")
             else:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     description="❌ Failed to update reminder!",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 await ctx.reply(embed=embed)
                 
         except Exception as e:
             self.logger.error(f"Error editing reminder: {e}")
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="❌ An error occurred while editing the reminder!",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             await ctx.reply(embed=embed)
 
@@ -737,7 +737,7 @@ class Reminders(commands.Cog, ErrorHandler):
 async def setup(bot):
     """Setup function for the cog"""
     try:
-        await bot.add_cog(Reminders(bot))
+        bot.add_cog(Reminders(bot))
     except Exception as e:
         print(f"Failed to load Reminders cog: {e}")
         raise

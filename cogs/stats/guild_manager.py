@@ -3,7 +3,7 @@ Guild Manager
 Handles guild information and statistics management.
 """
 
-import discord
+import nextcord
 import math
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
@@ -30,7 +30,7 @@ class GuildManager:
     async def show_guild_stats(self, ctx):
         """Show comprehensive guild statistics"""
         try:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🏰 Guild Statistics",
                 color=COLORS['stats']
             )
@@ -112,7 +112,7 @@ class GuildManager:
             end_idx = start_idx + per_page
             page_guilds = guilds[start_idx:end_idx]
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"🏰 Guild List (Page {page}/{total_pages})",
                 description=f"Showing {len(page_guilds)} of {len(guilds)} guilds",
                 color=COLORS['info']
@@ -170,7 +170,7 @@ class GuildManager:
                 await ctx.send(f"❌ Guild not found: `{guild_query}`")
                 return
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"🏰 {guild.name}",
                 color=COLORS['info']
             )
@@ -197,7 +197,7 @@ class GuildManager:
                     f"**Total:** {guild.member_count:,}\n"
                     f"**Humans:** {len([m for m in guild.members if not m.bot]):,}\n"
                     f"**Bots:** {len([m for m in guild.members if m.bot]):,}\n"
-                    f"**Online:** {len([m for m in guild.members if m.status != discord.Status.offline]):,}"
+                    f"**Online:** {len([m for m in guild.members if m.status != nextcord.Status.offline]):,}"
                 ),
                 inline=True
             )

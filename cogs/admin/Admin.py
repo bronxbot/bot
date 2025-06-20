@@ -8,4 +8,4 @@ from .admin import Admin
 
 async def setup(bot):
     """Setup function for the admin cog"""
-    await bot.add_cog(Admin(bot))
+    bot.add_cog(Admin(bot))

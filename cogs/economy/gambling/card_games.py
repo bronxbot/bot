@@ -1,14 +1,14 @@
 # Card Games Module
 # Contains card-based gambling games like Blackjack
 
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from cogs.logging.stats_logger import StatsLogger
 from utils.db import AsyncDatabase
 db = AsyncDatabase.get_instance()
 from utils.safe_reply import safe_reply
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
-import discord
+import nextcord
 import random
 import asyncio
 import functools
@@ -195,7 +195,7 @@ class CardGames(commands.Cog):
 
     def _blackjack_view(self, user_id: int, bet: int, player_hand: list, dealer_hand: list, wallet: int, split_count: int = 0):
         """Create the blackjack game view with buttons"""
-        view = discord.ui.View(timeout=60.0)
+        view = nextcord.ui.View(timeout=60.0)
         
         async def hit_callback(interaction):
             if interaction.user.id != user_id:
@@ -387,23 +387,23 @@ class CardGames(commands.Cog):
             
             await interaction.response.edit_message(embed=embed, view=view)
         
-        hit_button = discord.ui.Button(label="Hit", style=discord.ButtonStyle.green)
+        hit_button = nextcord.ui.Button(label="Hit", style=nextcord.ButtonStyle.green)
         hit_button.callback = hit_callback
         view.add_item(hit_button)
         
-        stand_button = discord.ui.Button(label="Stand", style=discord.ButtonStyle.red)
+        stand_button = nextcord.ui.Button(label="Stand", style=nextcord.ButtonStyle.red)
         stand_button.callback = stand_callback
         view.add_item(stand_button)
         
         # Only allow double on first move (2 cards)
         if len(player_hand) == 2:
-            double_button = discord.ui.Button(label="Double", style=discord.ButtonStyle.blurple)
+            double_button = nextcord.ui.Button(label="Double", style=nextcord.ButtonStyle.blurple)
             double_button.callback = double_callback
             view.add_item(double_button)
             
             # Only allow split if cards have same value and we have < 4 hands
             if self._can_split(player_hand) and split_count < 3:
-                split_button = discord.ui.Button(label="Split", style=discord.ButtonStyle.grey)
+                split_button = nextcord.ui.Button(label="Split", style=nextcord.ButtonStyle.grey)
                 split_button.callback = split_callback
                 view.add_item(split_button)
                 
@@ -411,7 +411,7 @@ class CardGames(commands.Cog):
 
     def _blackjack_split_view(self, user_id: int, bet: int, split_queue: list, dealer_hand: list, wallet: int, split_count: int):
         """Create a view for split hands with queue"""
-        view = discord.ui.View(timeout=60.0)
+        view = nextcord.ui.View(timeout=60.0)
         view.current_hand_index = 0
         view.split_queue = split_queue
         view.hands_completed = 0
@@ -549,11 +549,11 @@ class CardGames(commands.Cog):
                 )
                 return await interaction.response.edit_message(embed=embed, view=view)
         
-        hit_button = discord.ui.Button(label="Hit", style=discord.ButtonStyle.green)
+        hit_button = nextcord.ui.Button(label="Hit", style=nextcord.ButtonStyle.green)
         hit_button.callback = hit_callback
         view.add_item(hit_button)
         
-        stand_button = discord.ui.Button(label="Stand", style=discord.ButtonStyle.red)
+        stand_button = nextcord.ui.Button(label="Stand", style=nextcord.ButtonStyle.red)
         stand_button.callback = stand_callback
         view.add_item(stand_button)
         
@@ -561,7 +561,7 @@ class CardGames(commands.Cog):
 
     def _blackjack_split_embed(self, title: str, current_hand: list, other_hands: list, dealer_hand: list, bet: int, winnings: int, new_balance: int, split_count: int):
         """Create a blackjack split game embed"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"♠️♥️ Blackjack Game (Split {split_count}/4) ♦️♣️ - {title}", 
             color=0x2b2d31
         )
@@ -630,7 +630,7 @@ class CardGames(commands.Cog):
             embed_title += f" (Split {split_count}/4)"
         embed_title += f" ♦️♣️ - {title}"
         
-        embed = discord.Embed(title=embed_title, color=0x2b2d31)
+        embed = nextcord.Embed(title=embed_title, color=0x2b2d31)
         
         # Format hands
         player_cards = " ".join([f"`{card}`" for card in player_hand])
@@ -709,4 +709,4 @@ class CardGames(commands.Cog):
         return len(hand) == 2 and self._hand_value(hand) == 21
 
 async def setup(bot):
-    await bot.add_cog(CardGames(bot))
+    bot.add_cog(CardGames(bot))

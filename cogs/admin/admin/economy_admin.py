@@ -3,7 +3,7 @@ Economy Administration Module
 Admin functions for managing the economy and user data.
 """
 
-import discord
+import nextcord
 from typing import Dict, List, Optional, Any, Tuple
 from utils.db import AsyncDatabase
 from .constants import ERROR_MESSAGES, SUCCESS_MESSAGES, CONFIRMATION_PHRASES

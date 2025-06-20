@@ -3,12 +3,13 @@
 
 import json
 
-# Load bot configuration
+# Load bot configuration from environment variables
+import os
 try:
-    with open('data/config.json', 'r') as f:
-        data = json.load(f)
-    BOT_ADMINS = data.get('OWNER_IDS', [814226043924643880])
-except (FileNotFoundError, json.JSONDecodeError):
+    BOT_ADMINS = os.getenv('DISCORD_BOT_OWNER_IDS', '').split(',') if os.getenv('DISCORD_BOT_OWNER_IDS') else ['814226043924643880']
+    # Convert to integers
+    BOT_ADMINS = [int(admin_id.strip()) for admin_id in BOT_ADMINS if admin_id.strip()]
+except (ValueError, AttributeError):
     BOT_ADMINS = [814226043924643880]  # Fallback admin ID
 
 # Help system configuration

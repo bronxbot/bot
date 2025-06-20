@@ -14,7 +14,8 @@ COG_DATA = {
         "cogs.unique.Multiplayer": "fun", 
         "cogs.fun.Fun": "fun",
         "cogs.fun.Text": "fun",
-        "cogs.unique.SyncRoles": "success",        "cogs.Help": "success", 
+        "cogs.unique.SyncRoles": "success",        "cogs.help": "success", 
+        "cogs.admin.SlashCommands": "warning",
         "cogs.ModMail": "success", 
         "cogs.Reminders": "success",
         "cogs.Utility": "cog",
@@ -26,13 +27,12 @@ COG_DATA = {
         "cogs.economy.Trading": "success",
         "cogs.economy.Gambling": "success",
         "cogs.economy.Work": "success",
-        "cogs.economy.Bazaar": "success",
-        "cogs.settings.general": "success",
+        "cogs.economy.Bazaar": "success",        "cogs.settings.general": "disabled",  # Temporarily disabled due to command conflict
         "cogs.settings.moderation": "success", 
         "cogs.settings.economy": "success",
         "cogs.settings.music": "success",
-        "cogs.settings.welcome": "success",
-        "cogs.settings.logging": "success",
+        "cogs.settings.welcome": "disabled",  # Temporarily disabled due to command conflict
+        "cogs.settings.logging": "disabled",  # Temporarily disabled due to command conflict
         "cogs.Error": "success",
         "cogs.music": "fun",
         #"cogs.Security": "success", disabled for now
@@ -61,7 +61,7 @@ class CogLoader:
         """Safely load an extension and return status, error (if any), and load time"""
         start = time.time()
         try:
-            await bot.load_extension(cog)
+            bot.load_extension(cog)
             return True, "", time.time() - start
         except Exception as e:
             tb = ''.join(traceback.format_exception(type(e), e, e.__traceback__))

@@ -1,14 +1,14 @@
 # Gambling Module Init
 # Main coordinator for all gambling games
 
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 from cogs.logging.stats_logger import StatsLogger
 from utils.db import AsyncDatabase
 db = AsyncDatabase.get_instance()
 from utils.safe_reply import safe_reply
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
-import discord
+import nextcord
 import asyncio
 import time
 import functools
@@ -91,7 +91,7 @@ class Gambling(commands.Cog):
                 try:
                     await edit_data['message'].edit(embed=edit_data['embed'])
                     self.last_edit_time[message_id] = time.time()
-                except discord.NotFound:
+                except nextcord.NotFound:
                     # Message was deleted, remove from tracking
                     if message_id in self.last_edit_time:
                         del self.last_edit_time[message_id]
@@ -132,8 +132,8 @@ class Gambling(commands.Cog):
 
 async def setup(bot):
     # Load all gambling modules
-    await bot.add_cog(CardGames(bot))
-    await bot.add_cog(ChanceGames(bot)) 
-    await bot.add_cog(SpecialGames(bot))
-    await bot.add_cog(Plinko(bot))
-    await bot.add_cog(Gambling(bot))
+    bot.add_cog(CardGames(bot))
+    bot.add_cog(ChanceGames(bot)) 
+    bot.add_cog(SpecialGames(bot))
+    bot.add_cog(Plinko(bot))
+    bot.add_cog(Gambling(bot))

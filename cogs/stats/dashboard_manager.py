@@ -3,7 +3,7 @@ Dashboard Manager
 Handles integration with external dashboard and API communication.
 """
 
-import discord
+import nextcord
 import aiohttp
 import asyncio
 import time
@@ -131,7 +131,7 @@ class DashboardManager:
     async def force_stats_update(self, ctx):
         """Force an immediate stats update to dashboard"""
         try:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🔄 Forcing Stats Update",
                 description="Sending immediate update to dashboard...",
                 color=COLORS['info']
@@ -150,7 +150,7 @@ class DashboardManager:
             perf_time = round((time.time() - start_time) * 1000, 2)
             
             # Update embed with results
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Stats Update Complete",
                 color=COLORS['success']
             )
@@ -198,6 +198,10 @@ class DashboardManager:
                         
                         if response.status == 200:
                             return True
+                        elif response.status == 404:
+                            # Only log 404s at debug level to reduce spam
+                            logger.debug(f"Dashboard API endpoint not found: {endpoint}")
+                            return False  # Don't retry 404s
                         else:
                             logger.warning(f"Dashboard API returned status {response.status} for {endpoint}")
                             if attempt < self.max_retries - 1 and retry:

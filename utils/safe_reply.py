@@ -1,7 +1,7 @@
 """
 Safe reply utility to handle deleted messages and other Discord API errors
 """
-import discord
+import nextcord
 import logging
 
 logger = logging.getLogger('SafeReply')
@@ -16,7 +16,7 @@ async def safe_reply(ctx, *args, **kwargs):
         **kwargs: Keyword arguments to pass to reply
     
     Returns:
-        discord.Message or None if all attempts failed
+        nextcord.Message or None if all attempts failed
     """
     # Try normal reply first
     try:
@@ -28,7 +28,7 @@ async def safe_reply(ctx, *args, **kwargs):
         else:
             # Fallback to send
             return await ctx.send(*args, **kwargs)
-    except discord.NotFound:
+    except nextcord.NotFound:
         # Original message was deleted, try sending to channel
         try:
             logger.debug(f"Reply failed (message deleted), falling back to send in {ctx.channel}")
@@ -36,7 +36,7 @@ async def safe_reply(ctx, *args, **kwargs):
         except Exception as e:
             logger.warning(f"Send fallback failed: {e}")
             return None
-    except discord.Forbidden:
+    except nextcord.Forbidden:
         # No permission to send messages
         try:
             # Try DMing the user if possible
@@ -46,16 +46,16 @@ async def safe_reply(ctx, *args, **kwargs):
         except Exception as e:
             logger.warning(f"DM fallback failed: {e}")
             return None
-    except discord.HTTPException as e:
+    except nextcord.HTTPException as e:
         if e.status == 400:
             # Bad request, possibly message too long or invalid content
             try:
                 logger.debug(f"400 error, trying simplified message: {e}")
                 # Try with a simplified error message
-                error_embed = discord.Embed(
+                error_embed = nextcord.Embed(
                     title="❌ Error",
                     description="An error occurred while processing your request.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await ctx.send(embed=error_embed)
             except Exception as fallback_e:
@@ -78,24 +78,24 @@ async def safe_send(channel, *args, **kwargs):
         **kwargs: Keyword arguments to pass to send
     
     Returns:
-        discord.Message or None if failed
+        nextcord.Message or None if failed
     """
     try:
         return await channel.send(*args, **kwargs)
-    except discord.NotFound:
+    except nextcord.NotFound:
         logger.debug(f"Channel {channel} not found or deleted")
         return None
-    except discord.Forbidden:
+    except nextcord.Forbidden:
         logger.debug(f"No permission to send to {channel}")
         return None
-    except discord.HTTPException as e:
+    except nextcord.HTTPException as e:
         if e.status == 400:
             try:
                 # Try with simplified error message
-                error_embed = discord.Embed(
+                error_embed = nextcord.Embed(
                     title="❌ Error",
                     description="An error occurred.",
-                    color=discord.Color.red()
+                    color=nextcord.Color.red()
                 )
                 return await channel.send(embed=error_embed)
             except Exception:
@@ -117,17 +117,17 @@ async def safe_edit(message, *args, **kwargs):
         **kwargs: Keyword arguments to pass to edit
     
     Returns:
-        discord.Message or None if failed
+        nextcord.Message or None if failed
     """
     try:
         return await message.edit(*args, **kwargs)
-    except discord.NotFound:
+    except nextcord.NotFound:
         logger.debug(f"Message {message.id} not found or deleted")
         return None
-    except discord.Forbidden:
+    except nextcord.Forbidden:
         logger.debug(f"No permission to edit message {message.id}")
         return None
-    except discord.HTTPException as e:
+    except nextcord.HTTPException as e:
         logger.warning(f"HTTP exception editing message: {e.status}: {e}")
         return None
     except Exception as e:

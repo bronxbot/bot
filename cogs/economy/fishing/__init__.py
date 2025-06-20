@@ -1,7 +1,7 @@
 # Main Fishing Module Loader
 # Loads all fishing sub-modules and provides initialization
 
-from discord.ext import commands
+from nextcord.ext import commands
 from cogs.logging.logger import CogLogger
 
 class FishingMain(commands.Cog, name="Fishing"):
@@ -50,12 +50,12 @@ async def setup(bot):
     
     for module in fishing_modules:
         try:
-            await bot.load_extension(module)
+            bot.load_extension(module)
             print(f"✅ Loaded fishing module: {module}")
         except Exception as e:
             print(f"❌ Failed to load fishing module {module}: {e}")
             raise e
     
     # Load the main coordinator
-    await bot.add_cog(FishingMain(bot))
+    bot.add_cog(FishingMain(bot))
     print("✅ Loaded fishing main coordinator")

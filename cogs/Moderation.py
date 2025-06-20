@@ -1,8 +1,8 @@
-import discord
+import nextcord
 import random
 import json
 import logging
-from discord.ext import commands
+from nextcord.ext import commands
 from datetime import timedelta
 import datetime
 import asyncio
@@ -19,19 +19,19 @@ class Moderation(commands.Cog, ErrorHandler):
         self.bot.launch_time = datetime.datetime.now()
         self.logger.info("Moderation cog initialized")
 
-    async def log_action(self, guild_id: int, embed: discord.Embed):
+    async def log_action(self, guild_id: int, embed: nextcord.Embed):
         """Log moderation action to configured channel"""
         settings = await db.get_guild_settings(guild_id)
         if log_channel_id := settings.get("moderation", {}).get("log_channel"):
             if channel := self.bot.get_channel(log_channel_id):
                 try:
                     await channel.send(embed=embed)
-                except discord.HTTPException:
+                except nextcord.HTTPException:
                     pass
 
     @commands.command(aliases=["to"])
     @commands.has_permissions(moderate_members=True)
-    async def timeout(self, ctx, member: discord.Member, duration: str, *, reason=None):
+    async def timeout(self, ctx, member: nextcord.Member, duration: str, *, reason=None):
         """Timeout a member (e.g. 1h, 1d, 1w)"""
         if member.top_role >= ctx.author.top_role:
             return await ctx.send("You can't timeout someone with a higher or equal role!")
@@ -48,22 +48,22 @@ class Moderation(commands.Cog, ErrorHandler):
         
         try:
             await member.timeout(delta, reason=reason)
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"timed out {member.mention} • {duration}\n{reason or 'no reason provided'}",
-                color=discord.Color.orange()
+                color=nextcord.Color.orange()
             ).set_footer(text=f"by {ctx.author.name}")
             await ctx.send(embed=embed)
             await self.log_action(ctx.guild.id, embed)
-        except discord.HTTPException as e:
+        except nextcord.HTTPException as e:
             await ctx.send(f"failed to timeout: {e}")
 
     @commands.command()
     @commands.has_permissions(kick_members=True)
-    async def kick(self, ctx, member: discord.Member, *, reason=None):
+    async def kick(self, ctx, member: nextcord.Member, *, reason=None):
         await member.kick(reason=reason)
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             description=f"kicked {member.mention}\n{reason or 'no reason provided'}",
-            color=discord.Color.red()
+            color=nextcord.Color.red()
         ).set_footer(text=f"by {ctx.author.name}")
         await ctx.send(embed=embed)
 
@@ -94,7 +94,7 @@ class Moderation(commands.Cog, ErrorHandler):
 async def setup(bot):
     logger = CogLogger("Moderation")
     try:
-        await bot.add_cog(Moderation(bot))
+        bot.add_cog(Moderation(bot))
     except Exception as e:
         logger.error(f"Failed to load Moderation cog: {e}")
         raise

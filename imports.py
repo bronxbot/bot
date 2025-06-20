@@ -22,9 +22,9 @@ from typing import Dict, List, Tuple, Optional
 
 # Third Party Libraries
 import aiohttp
-import discord
+import nextcord
 import requests
-from discord.ext import commands, tasks
+from nextcord.ext import commands, tasks
 
 # Project Utilities
 from utils.command_tracker import usage_tracker

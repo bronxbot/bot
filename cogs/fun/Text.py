@@ -1,6 +1,6 @@
-import discord
+import nextcord
 import random
-from discord.ext import commands
+from nextcord.ext import commands
 import string
 from typing import List
 
@@ -17,11 +17,11 @@ class Text(commands.Cog, ErrorHandler):
         self.bot = bot
         self.logger = CogLogger(self.__class__.__name__)
 
-    def get_command_help(self) -> List[discord.Embed]:
+    def get_command_help(self) -> List[nextcord.Embed]:
         """Get paginated help embeds for this cog"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🔤 Text Transformation Commands",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         
         text_commands = ['spongebob', 'tinytext', 'reverse', 'owoify', 'emojify']
@@ -123,7 +123,7 @@ class Text(commands.Cog, ErrorHandler):
 async def setup(bot):
     try:
         logger = CogLogger("Text")
-        await bot.add_cog(Text(bot))
+        bot.add_cog(Text(bot))
     except Exception as e:
         logger.error(f"Failed to load Text cog: {e}")
         raise e

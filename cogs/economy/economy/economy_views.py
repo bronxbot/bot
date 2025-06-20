@@ -1,25 +1,25 @@
 """
 UI Views for the Economy system
 """
-import discord
+import nextcord
 import asyncio
 from typing import Dict, Any
 from utils.db import db
 from .constants import CURRENCY, COLORS
 from .economy_utils import format_currency
 
-class PaymentConfirmView(discord.ui.View):
+class PaymentConfirmView(nextcord.ui.View):
     """Payment confirmation view for the receiving user"""
     
-    def __init__(self, sender: discord.Member, receiver: discord.Member, amount: int):
+    def __init__(self, sender: nextcord.Member, receiver: nextcord.Member, amount: int):
         super().__init__(timeout=300)  # 5 minutes timeout
         self.sender = sender
         self.receiver = receiver
         self.amount = amount
         self.responded = False
     
-    @discord.ui.button(label="Accept", style=discord.ButtonStyle.green, emoji="✅")
-    async def accept_payment(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="Accept", style=nextcord.ButtonStyle.green, emoji="✅")
+    async def accept_payment(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.receiver.id:
             return await interaction.response.send_message("❌ Only the payment recipient can respond!", ephemeral=True)
         
@@ -33,7 +33,7 @@ class PaymentConfirmView(discord.ui.View):
             success = await db.transfer_money(self.sender.id, self.receiver.id, self.amount, interaction.guild.id)
             
             if success:
-                embed = discord.Embed(
+                embed = nextcord.Embed(
                     title="✅ Payment Accepted!",
                     description=f"Successfully transferred **{self.amount:,}** {CURRENCY}",
                     color=COLORS["success"]
@@ -44,25 +44,25 @@ class PaymentConfirmView(discord.ui.View):
                 
                 # Send a notification to the sender
                 try:
-                    sender_embed = discord.Embed(
+                    sender_embed = nextcord.Embed(
                         title="💰 Payment Completed!",
                         description=f"{self.receiver.display_name} accepted your payment of **{self.amount:,}** {CURRENCY}",
                         color=COLORS["success"]
                     )
                     await self.sender.send(embed=sender_embed)
-                except discord.Forbidden:
+                except nextcord.Forbidden:
                     pass  # Sender has DMs disabled
             else:
                 # Check why the transfer failed
                 sender_balance = await db.get_wallet_balance(self.sender.id, interaction.guild.id)
                 if sender_balance < self.amount:
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="❌ Payment Failed!",
                         description=f"The sender ({self.sender.display_name}) has insufficient funds.\nRequired: **{self.amount:,}** {CURRENCY}\nAvailable: **{sender_balance:,}** {CURRENCY}",
                         color=COLORS["error"]
                     )
                 else:
-                    embed = discord.Embed(
+                    embed = nextcord.Embed(
                         title="❌ Payment Failed!",
                         description=f"Transaction failed due to a database error. Please try again later.",
                         color=COLORS["error"]
@@ -71,7 +71,7 @@ class PaymentConfirmView(discord.ui.View):
                     print(f"Payment transfer failed: Sender {self.sender.id} has {sender_balance:,} but transfer of {self.amount:,} to {self.receiver.id} failed")
         
         except Exception as e:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="❌ Payment Failed!",
                 description=f"An unexpected error occurred while processing the payment.",
                 color=COLORS["error"]
@@ -85,8 +85,8 @@ class PaymentConfirmView(discord.ui.View):
         
         await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="Decline", style=discord.ButtonStyle.red, emoji="❌")
-    async def decline_payment(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="Decline", style=nextcord.ButtonStyle.red, emoji="❌")
+    async def decline_payment(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.receiver.id:
             return await interaction.response.send_message("❌ Only the payment recipient can respond!", ephemeral=True)
         
@@ -95,7 +95,7 @@ class PaymentConfirmView(discord.ui.View):
         
         self.responded = True
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="❌ Payment Declined",
             description=f"{self.receiver.display_name} declined the payment of **{self.amount:,}** {CURRENCY}",
             color=COLORS["error"]
@@ -105,13 +105,13 @@ class PaymentConfirmView(discord.ui.View):
         
         # Send a notification to the sender
         try:
-            sender_embed = discord.Embed(
+            sender_embed = nextcord.Embed(
                 title="❌ Payment Declined",
                 description=f"{self.receiver.display_name} declined your payment of **{self.amount:,}** {CURRENCY}",
                 color=COLORS["error"]
             )
             await self.sender.send(embed=sender_embed)
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             pass  # Sender has DMs disabled
         
         # Disable all buttons
@@ -123,7 +123,7 @@ class PaymentConfirmView(discord.ui.View):
     async def on_timeout(self):
         """Called when the view times out"""
         if not self.responded:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="⏰ Payment Expired",
                 description=f"Payment request from {self.sender.display_name} has expired",
                 color=COLORS["warning"]
@@ -141,10 +141,10 @@ class PaymentConfirmView(discord.ui.View):
             except:
                 pass  # Message might have been deleted
 
-class LeaderboardPaginationView(discord.ui.View):
+class LeaderboardPaginationView(nextcord.ui.View):
     """Pagination view for leaderboard"""
     
-    def __init__(self, guild: discord.Guild, leaderboard_data: list, current_page: int = 1, bot=None):
+    def __init__(self, guild: nextcord.Guild, leaderboard_data: list, current_page: int = 1, bot=None):
         super().__init__(timeout=300)
         self.guild = guild
         self.leaderboard_data = leaderboard_data
@@ -164,8 +164,8 @@ class LeaderboardPaginationView(discord.ui.View):
         self.previous_button.label = f"← Page {self.current_page - 1}" if self.current_page > 1 else "← Previous"
         self.next_button.label = f"Page {self.current_page + 1} →" if self.current_page < self.max_pages else "Next →"
     
-    @discord.ui.button(label="← Previous", style=discord.ButtonStyle.secondary, disabled=True)
-    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="← Previous", style=nextcord.ButtonStyle.secondary, disabled=True)
+    async def previous_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if self.current_page > 1:
             self.current_page -= 1
             self.update_buttons()
@@ -174,8 +174,8 @@ class LeaderboardPaginationView(discord.ui.View):
             embed = await format_leaderboard_embed(self.leaderboard_data, self.guild, self.current_page, self.bot)
             await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="🔄 Refresh", style=discord.ButtonStyle.primary)
-    async def refresh_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="🔄 Refresh", style=nextcord.ButtonStyle.primary)
+    async def refresh_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         # Refresh leaderboard data
         from .economy_utils import create_leaderboard_data, format_leaderboard_embed
         
@@ -190,8 +190,8 @@ class LeaderboardPaginationView(discord.ui.View):
         embed = await format_leaderboard_embed(self.leaderboard_data, self.guild, self.current_page, self.bot)
         await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="Next →", style=discord.ButtonStyle.secondary)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="Next →", style=nextcord.ButtonStyle.secondary)
+    async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if self.current_page < self.max_pages:
             self.current_page += 1
             self.update_buttons()
@@ -200,10 +200,10 @@ class LeaderboardPaginationView(discord.ui.View):
             embed = await format_leaderboard_embed(self.leaderboard_data, self.guild, self.current_page, self.bot)
             await interaction.response.edit_message(embed=embed, view=self)
 
-class InventoryPaginationView(discord.ui.View):
+class InventoryPaginationView(nextcord.ui.View):
     """Pagination view for inventory display"""
     
-    def __init__(self, user: discord.Member, inventory_data: list, current_page: int = 1):
+    def __init__(self, user: nextcord.Member, inventory_data: list, current_page: int = 1):
         super().__init__(timeout=300)
         self.user = user
         self.inventory_data = inventory_data
@@ -219,13 +219,13 @@ class InventoryPaginationView(discord.ui.View):
         self.previous_button.disabled = self.current_page <= 1
         self.next_button.disabled = self.current_page >= self.max_pages
     
-    def create_inventory_embed(self) -> discord.Embed:
+    def create_inventory_embed(self) -> nextcord.Embed:
         """Create inventory embed for current page"""
         start_index = (self.current_page - 1) * self.items_per_page
         end_index = start_index + self.items_per_page
         page_items = self.inventory_data[start_index:end_index]
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title=f"🎒 {self.user.display_name}'s Inventory",
             color=self.user.color
         )
@@ -244,8 +244,8 @@ class InventoryPaginationView(discord.ui.View):
         embed.set_footer(text=f"Page {self.current_page}/{self.max_pages} • Total items: {len(self.inventory_data)}")
         return embed
     
-    @discord.ui.button(label="← Previous", style=discord.ButtonStyle.secondary, disabled=True)
-    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="← Previous", style=nextcord.ButtonStyle.secondary, disabled=True)
+    async def previous_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if self.current_page > 1:
             self.current_page -= 1
             self.update_buttons()
@@ -253,8 +253,8 @@ class InventoryPaginationView(discord.ui.View):
             embed = self.create_inventory_embed()
             await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="🔄 Refresh", style=discord.ButtonStyle.primary)
-    async def refresh_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="🔄 Refresh", style=nextcord.ButtonStyle.primary)
+    async def refresh_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         # Refresh inventory data
         self.inventory_data = await db.get_inventory(self.user.id) or []
         self.max_pages = max(1, (len(self.inventory_data) + self.items_per_page - 1) // self.items_per_page)
@@ -267,8 +267,8 @@ class InventoryPaginationView(discord.ui.View):
         embed = self.create_inventory_embed()
         await interaction.response.edit_message(embed=embed, view=self)
     
-    @discord.ui.button(label="Next →", style=discord.ButtonStyle.secondary)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="Next →", style=nextcord.ButtonStyle.secondary)
+    async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if self.current_page < self.max_pages:
             self.current_page += 1
             self.update_buttons()

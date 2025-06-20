@@ -39,3 +39,7 @@ private.json
 
 # Restart info
 data/restart_info.json
+botEvents/__pycache__/onCommand.cpython-312.pyc
+botEvents/__pycache__/onMessage.cpython-312.pyc
+botEvents/__pycache__/onReady.cpython-312.pyc
+dev_env

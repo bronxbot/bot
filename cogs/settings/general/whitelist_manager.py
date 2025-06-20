@@ -3,8 +3,8 @@ Whitelist Manager
 Handles command whitelist functionality.
 """
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from typing import Dict, List, Set
 
 from utils.db import AsyncDatabase
@@ -22,7 +22,7 @@ class WhitelistManager:
 
     async def show_whitelist(self, ctx):
         """Show whitelist management interface"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Whitelist Management",
             description=(
                 "Manage command whitelists - restrict commands to specific channels/roles\n\n"
@@ -44,7 +44,7 @@ class WhitelistManager:
         whitelist = settings.get('command_whitelist', {})
         
         if not whitelist:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📋 Command Whitelist",
                 description="No command whitelists configured",
                 color=0x95a5a6
@@ -52,7 +52,7 @@ class WhitelistManager:
             await ctx.send(embed=embed)
             return
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="📋 Command Whitelist",
             description="Commands restricted to specific channels/roles",
             color=0x3498db
@@ -92,7 +92,7 @@ class WhitelistManager:
         
         await ctx.send(embed=embed)
 
-    async def whitelist_channel(self, ctx, channel: discord.TextChannel, command: str):
+    async def whitelist_channel(self, ctx, channel: nextcord.TextChannel, command: str):
         """Whitelist a command for a specific channel"""
         if not await self._validate_command(command):
             await ctx.send(f"❌ Command `{command}` not found")
@@ -115,7 +115,7 @@ class WhitelistManager:
         whitelist[command]['channels'].append(channel.id)
         await db.update_guild_settings(ctx.guild.id, {'command_whitelist': whitelist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Whitelist Added",
             description=f"Command `{command}` is now whitelisted for {channel.mention}",
             color=0x2ecc71
@@ -123,7 +123,7 @@ class WhitelistManager:
         await ctx.send(embed=embed)
         logger.info(f"Command '{command}' whitelisted for channel {channel.id} in guild {ctx.guild.id}")
 
-    async def whitelist_role(self, ctx, role: discord.Role, command: str):
+    async def whitelist_role(self, ctx, role: nextcord.Role, command: str):
         """Whitelist a command for a specific role"""
         if not await self._validate_command(command):
             await ctx.send(f"❌ Command `{command}` not found")
@@ -146,7 +146,7 @@ class WhitelistManager:
         whitelist[command]['roles'].append(role.id)
         await db.update_guild_settings(ctx.guild.id, {'command_whitelist': whitelist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Whitelist Added",
             description=f"Command `{command}` is now whitelisted for {role.mention}",
             color=0x2ecc71
@@ -154,7 +154,7 @@ class WhitelistManager:
         await ctx.send(embed=embed)
         logger.info(f"Command '{command}' whitelisted for role {role.id} in guild {ctx.guild.id}")
 
-    async def remove_whitelist_channel(self, ctx, channel: discord.TextChannel, command: str):
+    async def remove_whitelist_channel(self, ctx, channel: nextcord.TextChannel, command: str):
         """Remove channel whitelist for a command"""
         settings = await db.get_guild_settings(ctx.guild.id)
         whitelist = settings.get('command_whitelist', {})
@@ -171,7 +171,7 @@ class WhitelistManager:
         
         await db.update_guild_settings(ctx.guild.id, {'command_whitelist': whitelist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Whitelist Removed",
             description=f"Command `{command}` whitelist removed for {channel.mention}",
             color=0x2ecc71
@@ -179,7 +179,7 @@ class WhitelistManager:
         await ctx.send(embed=embed)
         logger.info(f"Command '{command}' whitelist removed for channel {channel.id} in guild {ctx.guild.id}")
 
-    async def remove_whitelist_role(self, ctx, role: discord.Role, command: str):
+    async def remove_whitelist_role(self, ctx, role: nextcord.Role, command: str):
         """Remove role whitelist for a command"""
         settings = await db.get_guild_settings(ctx.guild.id)
         whitelist = settings.get('command_whitelist', {})
@@ -196,7 +196,7 @@ class WhitelistManager:
         
         await db.update_guild_settings(ctx.guild.id, {'command_whitelist': whitelist})
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="✅ Whitelist Removed",
             description=f"Command `{command}` whitelist removed for {role.mention}",
             color=0x2ecc71

@@ -1,11 +1,11 @@
-import discord
+import nextcord
 import random
 import json
 import logging
 import re
 from uuid import uuid4
-from discord.ext import commands, tasks
-from discord.utils import utcnow
+from nextcord.ext import commands, tasks
+from nextcord.utils import utcnow
 from cogs.logging.logger import CogLogger
 from utils.db import db
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
@@ -83,10 +83,10 @@ class Giveaway(commands.Cog):
     @commands.group(name='giveaway', aliases=['gw'], invoke_without_command=True)
     async def giveaway_group(self, ctx: commands.Context):
         """Giveaway command group"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎉 Giveaway Commands",
             description="Available giveaway commands:",
-            color=discord.Color.gold()
+            color=nextcord.Color.gold()
         )
         embed.add_field(
             name="**User Commands**",
@@ -153,7 +153,7 @@ class Giveaway(commands.Cog):
         await db.store_stats(ctx.guild.id, "donated")
 
         if ctx.guild.id == 1259717095382319215:
-            role = discord.utils.get(ctx.guild.roles, id=1261514786311766106)
+            role = nextcord.utils.get(ctx.guild.roles, id=1261514786311766106)
             if role:
                 try:
                     await ctx.author.add_roles(role)
@@ -161,10 +161,10 @@ class Giveaway(commands.Cog):
                     self.logger.error(f"Error assigning role: {e}")
                     await ctx.reply("❌ Failed to assign the donor role!")
 
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💝 Donation Successful!",
             description=f"{ctx.author.mention} donated **{amount:,}** coins to the server giveaway balance!",
-            color=discord.Color.green()
+            color=nextcord.Color.green()
         )
         if multiplier > 1.0:
             embed.add_field(
@@ -192,10 +192,10 @@ class Giveaway(commands.Cog):
         """Check the server's giveaway balance"""
         balance = await self.get_server_balance(ctx.guild.id)
         
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="💰 Server Giveaway Balance",
             description=f"**{balance:,}** coins available for giveaways",
-            color=discord.Color.blue()
+            color=nextcord.Color.blue()
         )
         embed.set_footer(text=f"Use '.giveaway donate <amount>' to contribute!")
         await ctx.send(embed=embed)
@@ -229,13 +229,13 @@ class Giveaway(commands.Cog):
             await ctx.reply("❌ Failed to deduct from server balance!")
             return
 
-        end_time = utcnow() + discord.utils.timedelta(seconds=duration_seconds)
+        end_time = utcnow() + nextcord.utils.timedelta(seconds=duration_seconds)
         giveaway_id = str(uuid4())
 
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🎉 GIVEAWAY 🎉",
             description=description,
-            color=discord.Color.gold()
+            color=nextcord.Color.gold()
         )
         embed.add_field(
             name="💰 Prize",
@@ -280,10 +280,10 @@ class Giveaway(commands.Cog):
     async def end_giveaway_command(self, ctx, giveaway_id: str=None):
         """End a giveaway early"""
         if giveaway_id is None:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="End Giveaway",
                 description="❌ Please provide the giveaway ID to end.",
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
             return await ctx.send(embed=embed)
         if giveaway_id not in self.active_giveaways:
@@ -302,15 +302,15 @@ class Giveaway(commands.Cog):
         }
 
         if not guild_giveaways:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎉 Active Giveaways",
                 description="No active giveaways in this server.",
-                color=discord.Color.blue()
+                color=nextcord.Color.blue()
             )
         else:
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎉 Active Giveaways",
-                color=discord.Color.gold()
+                color=nextcord.Color.gold()
             )
             for gw_id, gw_data in guild_giveaways.items():
                 embed.add_field(
@@ -344,7 +344,7 @@ class Giveaway(commands.Cog):
 
             try:
                 message = await channel.fetch_message(giveaway_data['message_id'])
-            except discord.NotFound:
+            except nextcord.NotFound:
                 # Message was deleted
                 del self.active_giveaways[giveaway_id]
                 return
@@ -360,10 +360,10 @@ class Giveaway(commands.Cog):
                             participant_ids.add(user.id)
 
             # Pick winner
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="🎉 GIVEAWAY ENDED 🎉",
                 description=giveaway_data['description'],
-                color=discord.Color.red()
+                color=nextcord.Color.red()
             )
 
             if not participants:
@@ -472,7 +472,7 @@ class Giveaway(commands.Cog):
 async def setup(bot):
     logger = CogLogger("Giveaway")
     try:
-        await bot.add_cog(Giveaway(bot))
+        bot.add_cog(Giveaway(bot))
         logger.info("Giveaway cog loaded successfully")
     except Exception as e:
         logger.error(f"Failed to load Giveaway cog: {e}")

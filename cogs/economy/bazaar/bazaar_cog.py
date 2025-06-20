@@ -3,8 +3,8 @@ Main Bazaar Cog
 Core bazaar commands and functionality.
 """
 
-import discord
-from discord.ext import commands, tasks
+import nextcord
+from nextcord.ext import commands, tasks
 from cogs.logging.logger import CogLogger
 from utils.db import AsyncDatabase
 from utils.tos_handler import check_tos_acceptance, prompt_tos_acceptance
@@ -106,7 +106,7 @@ class Bazaar(commands.Cog):
                 BAZAAR_CONFIG["max_items"]
             )
             self.last_reset = datetime.now()
-            self.logger.info(f"Bazaar reset with {len(self.current_items)} items")
+            self.logger.debug(f"Bazaar reset with {len(self.current_items)} items")
             
         except Exception as e:
             self.logger.error(f"Error resetting bazaar items: {e}")
@@ -123,7 +123,7 @@ class Bazaar(commands.Cog):
                 await self.reset_bazaar_items()
             
             # Create bazaar embed
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"{BAZAAR_EMOJIS['bazaar']} Traveling Bazaar",
                 description=BAZAAR_MESSAGES["welcome"],
                 color=0x3498db
@@ -171,7 +171,7 @@ class Bazaar(commands.Cog):
     
     @commands.command(name="bazaarstats", aliases=["bstats"])
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def bazaar_stats(self, ctx, user: discord.Member = None):
+    async def bazaar_stats(self, ctx, user: nextcord.Member = None):
         """📊 View your bazaar statistics and investment portfolio"""
         target_user = user or ctx.author
         
@@ -179,7 +179,7 @@ class Bazaar(commands.Cog):
             # Get user statistics
             user_stats = await self.analytics.get_user_bazaar_stats(target_user.id, ctx.guild.id)
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title=f"📊 {target_user.display_name}'s Bazaar Stats",
                 color=0x9932cc
             )
@@ -216,7 +216,7 @@ class Bazaar(commands.Cog):
     @commands.command(name="bazaarinfo", aliases=["binfo"])
     async def bazaar_info(self, ctx):
         """ℹ️ Information about the bazaar system"""
-        embed = discord.Embed(
+        embed = nextcord.Embed(
             title="🏪 Traveling Bazaar Information",
             description="The traveling bazaar offers rare items at discounted prices!",
             color=0x3498db
@@ -251,7 +251,7 @@ class Bazaar(commands.Cog):
         
         await ctx.send(embed=embed)
     
-    async def process_bazaar_purchase(self, interaction: discord.Interaction, item_idx: int, amount: int):
+    async def process_bazaar_purchase(self, interaction: nextcord.Interaction, item_idx: int, amount: int):
         """Process a bazaar item purchase"""
         try:
             if item_idx >= len(self.current_items):
@@ -298,7 +298,7 @@ class Bazaar(commands.Cog):
             # Update statistics
             self.total_spent += total_cost
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="✅ Purchase Successful!",
                 description=f"You bought **{amount}x {item['name']}** for **{total_cost:,}** {self.currency}!",
                 color=0x00ff00
@@ -317,17 +317,17 @@ class Bazaar(commands.Cog):
             self.logger.error(f"Error processing purchase: {e}")
             await interaction.response.send_message("❌ Error processing purchase.", ephemeral=True)
     
-    async def handle_stock_purchase(self, interaction: discord.Interaction):
+    async def handle_stock_purchase(self, interaction: nextcord.Interaction):
         """Handle stock purchase interaction"""
         modal = StockPurchaseModal(self)
         await interaction.response.send_modal(modal)
     
-    async def handle_stock_sale(self, interaction: discord.Interaction):
+    async def handle_stock_sale(self, interaction: nextcord.Interaction):
         """Handle stock sale interaction"""
         modal = StockSaleModal(self)
         await interaction.response.send_modal(modal)
     
-    async def process_stock_purchase(self, interaction: discord.Interaction, amount: int):
+    async def process_stock_purchase(self, interaction: nextcord.Interaction, amount: int):
         """Process stock purchase"""
         try:
             stock_price = await self.stock_manager.get_current_stock_price(interaction.guild.id)
@@ -344,7 +344,7 @@ class Bazaar(commands.Cog):
                 interaction.user.id, interaction.guild.id, shares, stock_price, amount
             )
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📈 Stock Purchase Successful!",
                 description=f"You bought **{shares:.2f} shares** for **{amount:,}** {self.currency}!",
                 color=0x00ff00
@@ -364,7 +364,7 @@ class Bazaar(commands.Cog):
             self.logger.error(f"Error processing stock purchase: {e}")
             await interaction.followup.send("❌ Error processing stock purchase.", ephemeral=True)
     
-    async def process_stock_sale(self, interaction: discord.Interaction, shares: float):
+    async def process_stock_sale(self, interaction: nextcord.Interaction, shares: float):
         """Process stock sale"""
         try:
             stock_price = await self.stock_manager.get_current_stock_price(interaction.guild.id)
@@ -381,7 +381,7 @@ class Bazaar(commands.Cog):
                 interaction.user.id, interaction.guild.id, shares, stock_price, int(total_value)
             )
             
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="📉 Stock Sale Successful!",
                 description=f"You sold **{shares:.2f} shares** for **{int(total_value):,}** {self.currency}!",
                 color=0x00ff00
@@ -394,6 +394,6 @@ class Bazaar(commands.Cog):
             await interaction.followup.send("❌ Error processing stock sale.", ephemeral=True)
 
 
-def setup(bot):
+async def setup(bot):
     """Setup function for the bazaar cog"""
     bot.add_cog(Bazaar(bot))
