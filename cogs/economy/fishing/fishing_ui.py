@@ -6,6 +6,13 @@ import math
 from utils.db import AsyncDatabase
 db = AsyncDatabase.get_instance()
 
+def safe_user_check(interaction, user_id):
+    """Safely check if interaction user matches expected user_id"""
+    try:
+        return hasattr(interaction, 'user') and interaction.user and interaction.user.id == user_id
+    except AttributeError:
+        return False
+
 class FishInventoryPaginator(nextcord.ui.View):
     """Paginator for fish inventory with gear info on first page"""
     
@@ -659,7 +666,7 @@ class InteractiveFishSeller(nextcord.ui.View):
     
     @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.secondary, row=0)
     async def prev_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your fish!", ephemeral=True)
         
         if self.total_pages <= 1:
@@ -677,7 +684,7 @@ class InteractiveFishSeller(nextcord.ui.View):
     
     @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.secondary, row=0)
     async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your fish!", ephemeral=True)
         
         if self.total_pages <= 1:
