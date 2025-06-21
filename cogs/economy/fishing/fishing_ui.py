@@ -36,7 +36,7 @@ class FishInventoryPaginator(nextcord.ui.View):
     
     @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.secondary)
     async def prev_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
         if self.total_pages <= 1:
@@ -54,7 +54,7 @@ class FishInventoryPaginator(nextcord.ui.View):
     
     @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.secondary)
     async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
         if self.total_pages <= 1:
@@ -296,7 +296,7 @@ class RodPaginator(nextcord.ui.View):
 
     @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.secondary)
     async def prev_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
         if self.total_pages <= 1:
@@ -314,7 +314,7 @@ class RodPaginator(nextcord.ui.View):
 
     @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.secondary)
     async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
         if self.total_pages <= 1:
@@ -438,7 +438,7 @@ class BaitPaginator(nextcord.ui.View):
     
     @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.secondary)
     async def prev_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
         if self.total_pages <= 1:
@@ -456,7 +456,7 @@ class BaitPaginator(nextcord.ui.View):
     
     @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.secondary)
     async def next_button(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your inventory!", ephemeral=True)
         
         if self.total_pages <= 1:
@@ -626,41 +626,48 @@ class InteractiveFishSeller(nextcord.ui.View):
     def create_sell_callback(self, fish):
         """Create callback for sell button"""
         async def sell_callback(interaction: nextcord.Interaction):
-            if interaction.user.id != self.user_id:
+            if not safe_user_check(interaction, self.user_id):
                 return await interaction.response.send_message("❌ This isn't your fish!", ephemeral=True)
             
-            fish_id = fish.get('id')
-            if await db.remove_fish(self.user_id, fish_id):
-                await db.add_currency(self.user_id, fish['value'])
+            try:
+                fish_id = fish.get('id')
+                if not fish_id:
+                    return await interaction.response.send_message("❌ Fish ID not found!", ephemeral=True)
                 
-                # Remove fish from our list
-                self.user_fish = [f for f in self.user_fish if f.get('id') != fish_id]
-                
-                # Recalculate pages
-                self.total_pages = math.ceil(len(self.user_fish) / self.items_per_page) if self.user_fish else 1
-                if self.current_page > self.total_pages:
-                    self.current_page = max(1, self.total_pages)
-                
-                if self.user_fish:
-                    # Update view
-                    self.update_buttons()
-                    embed = await self.create_embed()
-                    await interaction.response.edit_message(embed=embed, view=self)
-                else:
-                    # No more fish
-                    embed = nextcord.Embed(
-                        title="🐟 All Fish Sold!",
-                        description="You've sold all your fish!",
-                        color=0x00ff00
+                if await db.remove_fish(self.user_id, fish_id):
+                    await db.add_currency(self.user_id, fish['value'])
+                    
+                    # Remove fish from our list
+                    self.user_fish = [f for f in self.user_fish if f.get('id') != fish_id]
+                    
+                    # Recalculate pages
+                    self.total_pages = math.ceil(len(self.user_fish) / self.items_per_page) if self.user_fish else 1
+                    if self.current_page > self.total_pages:
+                        self.current_page = max(1, self.total_pages)
+                    
+                    if self.user_fish:
+                        # Update view
+                        self.update_buttons()
+                        embed = await self.create_embed()
+                        await interaction.response.edit_message(embed=embed, view=self)
+                    else:
+                        # No more fish
+                        embed = nextcord.Embed(
+                            title="🐟 All Fish Sold!",
+                            description="You've sold all your fish!",
+                            color=0x00ff00
+                        )
+                        await interaction.response.edit_message(embed=embed, view=None)
+                    
+                    await interaction.followup.send(
+                        f"✅ Sold **{fish['name']}** for **{fish['value']:,}** {self.currency}!",
+                        ephemeral=True
                     )
-                    await interaction.response.edit_message(embed=embed, view=None)
-                
-                await interaction.followup.send(
-                    f"✅ Sold **{fish['name']}** for **{fish['value']:,}** {self.currency}!",
-                    ephemeral=True
-                )
-            else:
-                await interaction.response.send_message("❌ Failed to sell fish!", ephemeral=True)
+                else:
+                    await interaction.response.send_message("❌ Failed to sell fish!", ephemeral=True)
+            except Exception as e:
+                print(f"Error in sell_callback: {e}")
+                await interaction.response.send_message("❌ An error occurred while selling fish!", ephemeral=True)
         
         return sell_callback
     
@@ -733,7 +740,7 @@ class InteractiveFishSeller(nextcord.ui.View):
     
     async def sell_all_fish(self, interaction: nextcord.Interaction):
         """Sell all fish"""
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your fish market!", ephemeral=True)
         
         try:
@@ -792,7 +799,7 @@ class InteractiveFishSeller(nextcord.ui.View):
     
     async def refresh_view(self, interaction: nextcord.Interaction):
         """Refresh the view to update rarity dropdown and buttons"""
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your fish market!", ephemeral=True)
         
         # Update buttons to refresh rarity dropdown with current fish
@@ -840,7 +847,7 @@ class RaritySelect(nextcord.ui.Select):
     
     async def callback(self, interaction: nextcord.Interaction):
         """Handle rarity selection"""
-        if interaction.user.id != self.user_id:
+        if not safe_user_check(interaction, self.user_id):
             return await interaction.response.send_message("❌ This isn't your fish market!", ephemeral=True)
         
         selected_rarity = self.values[0]
